@@ -57,8 +57,9 @@ const canOpen = data.url && data.status !== 'archived';
           }
           {
             data.repo && (
-              <a class="btn btn-ghost" href={data.repo} rel="noopener">
+              <a class="btn btn-ghost" href={data.repo} target="_blank" rel="noopener">
                 {t(lang, 'work.github')} ↗
+                <span class="visually-hidden">{t(lang, 'work.newTab')}</span>
               </a>
             )
           }

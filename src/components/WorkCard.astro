@@ -53,9 +53,9 @@ const titleId = `work-${work.slug}-title`;
     </a>
     {
       data.repo && (
-        <a class="btn btn-ghost" href={data.repo} rel="noopener">
+        <a class="btn btn-ghost" href={data.repo} target="_blank" rel="noopener">
           {t(lang, 'work.github')}
-          <span class="visually-hidden">: {data.title}</span>
+          <span class="visually-hidden">: {data.title}{t(lang, 'work.newTab')}</span>
         </a>
       )
     }

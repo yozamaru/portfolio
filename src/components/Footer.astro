@@ -15,8 +15,8 @@ const year = new Date().getFullYear();
   <div class="container inner">
     <p>© {year} {SITE.name[lang]}</p>
     <ul>
-      <li><a href={SITE.github} rel="me">GitHub</a></li>
-      <li><a href={SITE.repo}>{t(lang, 'footer.source')}</a></li>
+      <li><a href={SITE.github} target="_blank" rel="me noopener">GitHub<span class="visually-hidden">{t(lang, 'work.newTab')}</span></a></li>
+      <li><a href={SITE.repo} target="_blank" rel="noopener">{t(lang, 'footer.source')}<span class="visually-hidden">{t(lang, 'work.newTab')}</span></a></li>
     </ul>
   </div>
 </footer>
