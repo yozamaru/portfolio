@@ -1,4 +1,5 @@
 import type { Lang } from './i18n/ui';
+import profilePhoto from './assets/profile.jpg';
 
 /** サイト全体の設定。名前や自己紹介はここだけを書き換える。 */
 export const SITE = {
@@ -8,13 +9,24 @@ export const SITE = {
   name: { ja: '與座 直寛', en: 'Naohiro Yoza' },
   /** トップページの肩書き */
   role: {
-    ja: 'プロダクトエンジニア',
-    en: 'Product Engineer',
+    ja: 'システムエンジニア',
+    en: 'Systems Engineer',
   },
-  /** トップページの自己紹介（下書き。本人の確認待ち） */
+  /** トップページと About の自己紹介 */
   intro: {
-    ja: '企画から設計・開発・公開・運用まで、一人でやり切るプロダクトづくりをしています。AIや統計の仕組みを、実際に使えるサービスに落とし込むことが得意です。',
-    en: 'I build products end to end, from planning and design to development, launch, and operations. I specialize in turning AI and statistical methods into services people can actually use.',
+    ja: 'システムエンジニアとして5年間、システム開発に携わってきました。個人でも、企画から設計・開発・公開・運用まで一人でやり切るプロダクトづくりをしています。AIや統計の仕組みを、実際に使えるサービスに落とし込むことが得意です。',
+    en: 'I have worked as a systems engineer for five years. On my own, I also build products end to end, from planning and design to development, launch, and operations. I specialize in turning AI and statistical methods into services people can actually use.',
+  },
+  /** About の写真の横に添える、ひとこと */
+  bio: {
+    ja: 'バスケットボールが好きです。',
+    en: 'I love basketball.',
+  },
+  /** プロフィール写真（位置情報などのメタデータは取り除いてある） */
+  photo: profilePhoto,
+  photoAlt: {
+    ja: 'バスケットボールの試合会場の客席から、背番号18のユニフォームを着てコートを見下ろす後ろ姿',
+    en: 'Seen from behind in the stands of a basketball arena, wearing a No. 18 jersey and looking down at the court',
   },
 } satisfies {
   url: string;
@@ -23,4 +35,7 @@ export const SITE = {
   name: Record<Lang, string>;
   role: Record<Lang, string>;
   intro: Record<Lang, string>;
+  bio: Record<Lang, string>;
+  photo: ImageMetadata;
+  photoAlt: Record<Lang, string>;
 };

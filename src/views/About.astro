@@ -1,4 +1,5 @@
 ---
+import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import { SITE } from '../site';
 import type { Lang } from '../i18n/ui';
@@ -58,7 +59,21 @@ const principles = {
   <section class="section">
     <div class="container">
       <h1>{t(lang, 'about.title')}</h1>
-      <p class="lead">{SITE.intro[lang]}</p>
+      <div class="profile">
+        <Image
+          class="photo"
+          src={SITE.photo}
+          alt={SITE.photoAlt[lang]}
+          widths={[240, 480]}
+          sizes="(max-width: 640px) 60vw, 240px"
+          loading="eager"
+        />
+        <div>
+          <p class="name">{SITE.name[lang]}<span class="role">{SITE.role[lang]}</span></p>
+          <p class="lead">{SITE.intro[lang]}</p>
+          <p class="lead">{SITE.bio[lang]}</p>
+        </div>
+      </div>
 
       <ul class="principles">
         {
@@ -98,8 +113,36 @@ const principles = {
 </Base>
 
 <style>
+  .profile {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 24px 40px;
+    margin-top: 28px;
+  }
+  .profile > div {
+    flex: 1 1 320px;
+  }
+  .photo {
+    width: min(240px, 60vw);
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+  .name {
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+  .role {
+    margin-left: 12px;
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: var(--text-muted);
+  }
   .lead {
-    margin-top: 20px;
+    margin-top: 16px;
     max-width: 40em;
     font-size: 1.1rem;
     color: var(--text-muted);

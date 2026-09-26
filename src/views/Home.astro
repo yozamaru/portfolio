@@ -1,4 +1,5 @@
 ---
+import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import WorkCard from '../components/WorkCard.astro';
 import { SITE } from '../site';
@@ -18,14 +19,24 @@ const others = works.filter((w) => !w.data.featured);
 
 <Base lang={lang}>
   <section class="hero">
-    <div class="container">
-      <p class="eyebrow">{SITE.role[lang]}</p>
-      <h1>{SITE.name[lang]}</h1>
-      <p class="intro">{SITE.intro[lang]}</p>
-      <div class="cta">
-        <a class="btn btn-primary" href="#works">{t(lang, 'home.cta.works')}</a>
-        <a class="btn btn-ghost" href={localePath(lang, '/contact/')}>{t(lang, 'home.cta.contact')}</a>
+    <div class="container hero-inner">
+      <div>
+        <p class="eyebrow">{SITE.role[lang]}</p>
+        <h1>{SITE.name[lang]}</h1>
+        <p class="intro">{SITE.intro[lang]}</p>
+        <div class="cta">
+          <a class="btn btn-primary" href="#works">{t(lang, 'home.cta.works')}</a>
+          <a class="btn btn-ghost" href={localePath(lang, '/contact/')}>{t(lang, 'home.cta.contact')}</a>
+        </div>
       </div>
+      <Image
+        class="photo"
+        src={SITE.photo}
+        alt={SITE.photoAlt[lang]}
+        widths={[280, 560]}
+        sizes="(max-width: 800px) 50vw, 280px"
+        loading="eager"
+      />
     </div>
   </section>
 
@@ -70,6 +81,29 @@ const others = works.filter((w) => !w.data.featured);
     background:
       radial-gradient(60% 80% at 100% 0%, color-mix(in srgb, var(--brand) 12%, transparent), transparent 70%),
       radial-gradient(40% 60% at 85% 10%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%);
+  }
+  .hero-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 32px 56px;
+  }
+  .photo {
+    width: 280px;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--brand) 14%, transparent);
+  }
+  @media (max-width: 800px) {
+    .hero-inner {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .photo {
+      width: min(220px, 55vw);
+    }
   }
   h1 {
     margin-top: 8px;
