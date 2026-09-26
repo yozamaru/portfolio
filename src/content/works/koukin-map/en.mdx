@@ -1,0 +1,88 @@
+---
+sourceHash: '66acf4523228'
+title: Koukin Map
+tagline: A service that covers every line of revenue and spending for Okinawa Prefecture and its 41 municipalities, down to the finest level of their budget and settlement books, so anyone can check where tax money goes, with sources.
+screenshotAlts:
+  - The "Revenue and spending" page for Naha City, showing total FY2024 expenditure by purpose, with bars for the amount and share of assembly, general affairs, welfare, and other categories
+  - The FY2024 settlement detail page for Naha City, listing spending by top-level category in the general account, with the source document name, retrieval date, SHA-256, and extraction method shown below
+  - The list of projects for Itoman City, each with its total cost, the amount as written in the source, and a label showing whether its location has been confirmed
+stack:
+  - name: HTML / JavaScript
+    role: UI. No build step; served as plain ES modules
+  - name: Python
+    role: Ingesting source documents, running checks, and generating the split JSON files for publication
+  - name: pdfminer.six / pypdf
+    role: Extracting text and its position from PDFs
+  - name: fontTools
+    role: Recovering text from fonts that lack a character map, by matching their glyphs against a reference font
+  - name: openpyxl / xlrd
+    role: Reading contract results and national government statistics (Excel)
+  - name: JSON Schema
+    role: Validating the structure of ingested data
+  - name: Leaflet / GSI tiles
+    role: A map showing only locations that have been confirmed
+  - name: Google Forms
+    role: Receiving error reports and requests to withhold personal names
+  - name: Cloudflare Workers
+    role: Serving static files (planned for launch)
+decisions:
+  - title: Data that fails its checks is never published
+    problem: Municipal budget and settlement books are PDFs, and their layout varies by municipality and year. Automated extraction can misread values or mix up columns, and wrong figures cannot be presented as "how your taxes were spent."
+    choice: Every ingestion runs sum checks (each category equals the sum of its subcategories), per-row identities such as "current budget = amount spent + carried forward + unused," and a comparison against the summary table at the front of the book. If even one check fails, nothing is saved. Inconsistencies in the source itself are recorded in the configuration only after confirming them on the page, and are shown with a note instead of being corrected.
+    outcome: In the Naha City water and sewerage bureau's settlement book, I found that the change column had been mistaken for the budget column, yet the sum checks still passed. A column mix-up happens the same way in every row, so totals alone cannot catch it. This is why per-row identity checks are now mandatory.
+  - title: AI reads image-only PDFs, and the checks confirm what it read
+    problem: Some smaller towns publish settlement books as scanned, image-only PDFs. With no extractable text, they cannot be ingested as they are.
+    options:
+      - Read them with the built-in macOS text recognition (Vision)
+      - Have AI read the page images and transcribe them, then reconcile against the totals in the document
+    choice: Text recognition made too many errors in digits, so I chose to have AI read and transcribe the page images. Every value is reconciled against the totals in the document, and anything that does not match is re-read at a higher resolution. If it still does not match, it is flagged as "needs review" rather than filled in by guesswork. The verification record keeps who checked it (AI or human), the page, and the date.
+    outcome: In Yonaguni Town's FY2024 settlement book (90 image-only pages for the general account alone), the checks caught four misreadings, which were fixed using higher-resolution images and the per-row identities. The UI shows whether each value was read from the PDF text or read by AI from an image.
+  - title: No database; preprocessed static files instead
+    problem: Operating costs need to stay under 10,000 yen a year, with routine maintenance of 2 to 4 hours a month. Yet the service has to cover revenue and spending, contracts, and projects for 42 municipalities over five years.
+    options:
+      - Use Supabase (Postgres and an API)
+      - Serve an SQLite file
+      - Serve preprocessed JSON, split by municipality × year × category
+    choice: All ingestion and aggregation happens ahead of time, and JSON split by municipality × year × category is served as static files. The UI is plain HTML and JavaScript with no build step. Supabase's free-tier pausing rules and paid-plan pricing did not fit the cost and time limits.
+    outcome: The design needs no always-on server, and within the free tiers confirmed from official documentation, the estimated annual cost is zero.
+---
+
+import Decisions from '../../../components/Decisions.astro';
+import TechStack from '../../../components/TechStack.astro';
+
+## Why I built it
+
+If you want to know how your local government spends its taxes, the budget and settlement books are PDFs in a different format for every municipality, often hundreds of pages long. Contract results and subsidy information are scattered across separate pages.
+
+Koukin Map ("public money map") aims to let ordinary residents see where the money came from and what it was spent on, in a form they can trace back to the source. It starts with Okinawa Prefecture and its 41 municipalities (42 local governments in total) for fiscal years 2020 to 2024. It is meant to expand nationwide later, so its name and data layout are not tied to any one region.
+
+## Key features
+
+- **Revenue and spending**: For all 42 local governments, it shows revenue, spending by purpose, and spending by type, with amounts and shares, based on the Ministry of Internal Affairs and Communications' settlement statistics (ordinary accounts).
+- **Line-item detail**: For local governments that publish their budget and settlement books, you can drill down through all four levels of budget categories for the general account, special accounts, and public enterprise accounts. Each item links to its page in the source document.
+- **Contracts and projects as concrete examples**: Contracts (construction and outsourcing) and the flow of money for individual projects appear as concrete examples under the revenue and spending items. Joint ventures are kept as their own entries rather than split among member companies.
+- **"None" is not the same as "not yet ingested"**: Something that has not been found is never shown as zero. For each local government, year, and document, the site shows whether it has been ingested yet.
+- **Sources and error reports**: Values carry their source: document name, page, retrieval date, and the file's SHA-256 hash. The site states clearly that the data was ingested automatically, and every page lets you report an error with the data's ID and source already filled in.
+
+## Design decisions
+
+<Decisions />
+
+## Tech stack
+
+<TechStack />
+
+## Quality and operations
+
+- **Checks**: Ingestion saves only data whose totals, per-row identities, and summary tables all match. When ingesting the national settlement statistics, all 10,253 checks passed.
+- **Data validation**: Ingested data is validated with JSON Schema and custom checks before it is written out. The data model keeps the stages of money distinct (budget, contract, grant decision, payment) and avoids double-counting transfers and contract amendments.
+- **UI checks**: A headless browser at smartphone width checks every page for required text, JavaScript errors, horizontal overflow, map rendering, and pre-filled report links.
+- **Careful presentation**: Companies are never treated as the same entity based on name alone, and nothing on the site judges wrongdoing simply because a contract is large, concentrated, or awarded without competition. The map shows only locations confirmed in official municipal documents.
+- **Handling source documents**: Source PDFs and other files are not redistributed. The site extracts facts such as amounts and counterparties, and links to the source.
+- **Developing with AI**: I alternate between Claude Code and Codex. Instead of relying on chat history, decisions and handoff notes are kept in the repository, so work can resume from either tool at any point.
+
+## Looking back and ahead
+
+The original design centered on the history of contracts and subsidies. As I built it, I realized that to understand what taxes are spent on, you first need to see a local government's revenue and spending as a whole. So I reorganized the site around revenue and spending items, and repositioned contracts and projects as concrete examples beneath them.
+
+Next, I will ask local governments that do not publish their budget and settlement books online to provide them, and replace the summary figures with full line-item detail as they come in. Once the conditions for publication are in place, the plan is to launch with a limited set of data.
