@@ -1,5 +1,6 @@
 import type { Lang } from './i18n/ui';
 import profilePhoto from './assets/profile.jpg';
+import siteIcon from './assets/site-icon.png';
 
 /** サイト全体の設定。名前や自己紹介はここだけを書き換える。 */
 export const SITE = {
@@ -22,6 +23,8 @@ export const SITE = {
     ja: 'バスケットボールが好きです。',
     en: 'I love basketball.',
   },
+  /** サイトのアイコン（ヘッダーの印と OGP 画像。ファビコンは public/ に同じ絵柄の縮小版を置いている） */
+  icon: siteIcon,
   /** プロフィール写真（位置情報などのメタデータは取り除いてある） */
   photo: profilePhoto,
   photoAlt: {
@@ -36,6 +39,7 @@ export const SITE = {
   role: Record<Lang, string>;
   intro: Record<Lang, string>;
   bio: Record<Lang, string>;
+  icon: ImageMetadata;
   photo: ImageMetadata;
   photoAlt: Record<Lang, string>;
 };

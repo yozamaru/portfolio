@@ -49,8 +49,8 @@ interface OgInput {
   title: string;
   subtitle: string;
   footer: string;
-  /** アイコン画像のファイルパス（無ければサイトのマーク） */
-  iconPath?: string;
+  /** アイコン画像のファイルパス（サイト全体の画像ではサイトのアイコン） */
+  iconPath: string;
   accent?: string;
 }
 
@@ -63,32 +63,11 @@ const h = (type: string, style: Record<string, unknown>, children?: unknown, ext
 export async function renderOg({ title, subtitle, footer, iconPath, accent = '#1d5be0' }: OgInput): Promise<Buffer> {
   const allText = title + subtitle + footer;
   const [regular, bold] = await Promise.all([loadFont(allText, 400), loadFont(allText, 800)]);
-  const icon = iconPath
-    ? h('img', { width: 168, height: 168, borderRadius: 38 }, undefined, {
-        src: await iconDataUrl(iconPath, 336),
-        width: 168,
-        height: 168,
-      })
-    : h(
-        'div',
-        {
-          width: 168,
-          height: 168,
-          borderRadius: 38,
-          display: 'flex',
-          background: 'linear-gradient(135deg, #1d5be0, #0b1f5c)',
-          position: 'relative',
-        },
-        h('div', {
-          position: 'absolute',
-          right: 30,
-          top: 30,
-          width: 42,
-          height: 42,
-          borderRadius: 21,
-          background: '#f28c28',
-        }),
-      );
+  const icon = h('img', { width: 168, height: 168, borderRadius: 38 }, undefined, {
+    src: await iconDataUrl(iconPath, 336),
+    width: 168,
+    height: 168,
+  });
 
   const tree = h(
     'div',

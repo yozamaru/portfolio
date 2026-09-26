@@ -1,4 +1,5 @@
 ---
+import { Image } from 'astro:assets';
 import { SITE } from '../site';
 import type { Lang } from '../i18n/ui';
 import { localePath, stripLang, t } from '../i18n/utils';
@@ -22,7 +23,7 @@ const nav = [
 <header class="header">
   <div class="container inner">
     <a class="brand" href={localePath(lang, '/')}>
-      <span class="mark" aria-hidden="true"></span>
+      <Image class="mark" src={SITE.icon} alt="" width={24} height={24} densities={[1, 2, 3]} loading="eager" />
       <span>{SITE.name[lang]}</span>
     </a>
     <nav aria-label={t(lang, 'nav.menu')}>
@@ -110,12 +111,8 @@ const nav = [
     letter-spacing: -0.01em;
   }
   .mark {
-    width: 22px;
-    height: 22px;
-    border-radius: 7px;
-    background:
-      radial-gradient(circle at 72% 28%, var(--accent) 0 22%, transparent 23%),
-      linear-gradient(135deg, #1d5be0, #0b1f5c);
+    width: 24px;
+    height: 24px;
   }
   nav {
     margin-left: auto;
