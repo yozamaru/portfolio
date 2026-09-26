@@ -1,0 +1,56 @@
+---
+import type { Work } from '../lib/works';
+
+interface Props {
+  metrics: Work['data']['metrics'];
+  label: string;
+}
+
+const { metrics, label } = Astro.props;
+---
+
+{
+  metrics.length > 0 && (
+    <dl class="metrics" aria-label={label}>
+      {metrics.map((m) => (
+        <div>
+          <dd>{m.value}</dd>
+          <dt>{m.label}</dt>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
+<style>
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin: 0;
+  }
+  .metrics div {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    gap: 4px;
+    padding: 16px 18px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+  dd {
+    margin: 0;
+    font-size: clamp(1.5rem, 1.2rem + 1vw, 1.9rem);
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--brand-strong);
+    font-variant-numeric: tabular-nums;
+  }
+  dt {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+</style>

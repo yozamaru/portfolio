@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "portfolio",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page",
+    // /api/* だけ Worker を通す。ページは静的ファイルとして直接配信する
+    "run_worker_first": ["/api/*"]
+  },
+  "routes": [{ "pattern": "naomaru.app", "custom_domain": true }],
+  "observability": { "enabled": true },
+  // 秘密情報は wrangler secret put で登録する（README 参照）:
+  //   TURNSTILE_SECRET_KEY, RESEND_API_KEY
+  "vars": {
+    "CONTACT_FROM": "naomaru.app <contact@naomaru.app>"
+    // CONTACT_TO（送り先のメールアドレス）は公開リポジトリに書かないため、secret で登録する
+  }
+}

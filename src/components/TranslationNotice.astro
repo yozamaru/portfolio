@@ -1,0 +1,22 @@
+---
+import type { Lang } from '../i18n/ui';
+import { t } from '../i18n/utils';
+import type { Translation } from '../lib/works';
+
+interface Props {
+  lang: Lang;
+  translation: Translation;
+}
+
+const { lang, translation } = Astro.props;
+const key = translation === 'missing' ? 'i18n.notTranslated' : translation === 'stale' ? 'i18n.stale' : undefined;
+---
+
+{
+  lang !== 'ja' && key && (
+    <p class="notice" role="note">
+      <span aria-hidden="true">ⓘ</span>
+      <span>{t(lang, key)}</span>
+    </p>
+  )
+}

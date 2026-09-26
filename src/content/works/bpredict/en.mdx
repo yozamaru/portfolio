@@ -1,0 +1,97 @@
+---
+sourceHash: '9bfac47ed072'
+title: B.PREDICT (working title)
+tagline: An unofficial tool that predicts B.LEAGUE win probabilities, scores, and player stats with statistical models, and openly publishes the reasoning behind each prediction along with its own track record.
+screenshotAlts:
+  - A game prediction screen showing both teams' win probabilities, the predicted score, and the factors behind the prediction (synthetic data with fictional clubs)
+  - The accuracy page, charting actual win rates against predicted probabilities to show how well-calibrated the predictions are (synthetic data)
+  - Today's predictions, with a win-probability bar for each game (synthetic data)
+metrics:
+  - value: ~2,500
+    label: Games ingested (5 seasons)
+  - value: '915'
+    label: Automated tests (Python 672 / TypeScript 243)
+  - value: '¥0'
+    label: Yearly running cost (all free tiers)
+stack:
+  - name: Next.js 16
+    role: UI. Exported as static files and delivered by Cloudflare Pages
+  - name: TypeScript
+    role: Implementation language for the UI and API
+  - name: Cloudflare Workers / Hono
+    role: Public API, internal API for registering predictions, and an hourly cron that finalizes predictions
+  - name: Cloudflare D1
+    role: The source-of-truth database. Triggers freeze finalized predictions
+  - name: Python 3.12
+    role: Batch jobs for data ingestion, feature generation, and training
+  - name: LightGBM
+    role: The win/loss prediction model
+  - name: GitHub Actions
+    role: CI, data ingestion, and daily parser monitoring
+decisions:
+  - title: Predictions can never be changed once a game tips off
+    problem: If predictions could be edited after the game, the promise to publish my track record honestly would mean nothing. Past predictions must not change even through application bugs or operator mistakes.
+    choice: Triggers in the database (D1) reject updates and deletes on finalized prediction rows, covering the prediction table and all four child tables. An hourly cron finalizes predictions for games that have started, children first and then parents. The API rejects writes for games past tip-off, and re-running a prediction never overwrites — it adds a new row with the revision number incremented. All writes go through Workers; there is no path that touches the database directly.
+    outcome: Even with a bug in the application, the database layer guarantees that past predictions do not change. This is already applied to the production database.
+  - title: Judged by calibration, not by how often it is right
+    problem: Win/loss accuracy alone does not tell you whether a "70%" prediction can be trusted. And with the number of games available for evaluation, differences in accuracy are hard to distinguish statistically.
+    options:
+      - Decide which model to adopt by accuracy
+      - Decide by how accurate the probabilities are (calibration error, ECE, and the Brier score)
+    choice: The adoption gate uses calibration error (ECE) instead of accuracy, with the threshold set from an estimate of random noise. The accuracy page lists the actual win rate for each band of predicted probability, without hiding the misses.
+    outcome: In a trial over four seasons (765 test games), LightGBM scored an ECE of 0.058, under the 0.087 threshold. It also turned out not to beat a simple team-strength (Elo) model by a significant margin, so the adoption decision will wait until data for all seasons is in.
+  - title: Features that never see the future
+    problem: If information that was not yet final at tip-off leaks into training, validation scores look great while real predictions fail.
+    options:
+      - A test that shifts the cutoff time and checks whether results change
+      - A test that deliberately perturbs the database and checks that results do not change when the cutoff time is fixed
+    choice: Every feature function takes a cutoff time (as_of) and only uses games that finished by then, and validation uses time-based splits. Shifting the cutoff misses implementations that ignore it, so I chose the perturbation test instead.
+    outcome: An accuracy of 70.3% was high enough to be suspicious, so I investigated and confirmed that all 10 leakage tests pass.
+  - title: A delivery setup with zero yearly running cost
+    problem: To keep an unofficial personal tool running for years, the cost had to be zero, with no uncapped pay-as-you-go billing.
+    options:
+      - The paid Workers plan (about ¥9,000 a year)
+      - Regenerating pages on demand (ISR)
+      - Serving data from R2 or KV
+      - Serving static JSON written by the batch job
+    choice: The batch job writes prediction results as static JSON, so the most-viewed screens are served without touching Workers or the database. Static generation is limited to the last three seasons, and the initial JavaScript is kept under 180 KB gzipped.
+    outcome: CI checks these limits on every change, so changes that exceed them cannot be merged.
+---
+
+import Decisions from '../../../components/Decisions.astro';
+import TechStack from '../../../components/TechStack.astro';
+
+<p class="notice" role="note">This project is in development. The screens shown here run on synthetic data (fictional clubs) used to check the UI.</p>
+
+## Why I built it
+
+It is for B.LEAGUE fans, supporters of particular clubs, and basketball fans who love data.
+
+Before each game, it shows the odds as numbers and explains in plain language why the prediction came out that way. It also publishes how well its own predictions did for each model version, without hiding the misses. Instead of claiming to be "often right", it aims to earn trust by showing that games it called at 70% are actually won about 70% of the time. It has no betting-related features.
+
+## Key features
+
+- **Win probabilities** for both teams.
+- **Predicted scores**, derived from predicted point margins and totals.
+- **Player stat predictions**, starting with minutes, points, rebounds, and assists and expanding step by step.
+- **Reasons behind each prediction**, showing which side each factor favors — team strength, rest days, missing key players, and more.
+- **A public track record**, including trends by model version and how accurate the predicted probabilities were.
+
+## Design decisions
+
+<Decisions />
+
+## Tech stack
+
+<TechStack />
+
+## Quality and operations
+
+- **Tests**: 915 automated tests across Python and TypeScript.
+- **CI**: ruff, mypy, and pytest for Python; type checks, lint, and Vitest for the API. The UI is checked for types and lint, as well as text contrast (at least 4.5:1), JavaScript size, the number of exported files, and broken links. CI also verifies that no strings from real websites slip into test fixtures.
+- **Responsible data collection**: robots.txt and the terms of use are compared against known versions, and collection stops if they change. Requests are at least 3 seconds apart and capped at 3,000 per day, collection stops on 429 or 503 responses, and raw HTML is never stored.
+- **Monitoring**: A daily job checks that the parser still works correctly.
+
+## What's next
+
+After ingesting more seasons, I will make the model adoption decision, then move on to registering predictions, wiring the UI to real data, predicted scores, per-factor explanations (SHAP), and the accuracy page. Before launch, I plan to settle the official name and check trademarks, get legal advice, and contact B.LEAGUE in advance.

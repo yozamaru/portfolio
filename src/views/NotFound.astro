@@ -1,0 +1,29 @@
+---
+import Base from '../layouts/Base.astro';
+import type { Lang } from '../i18n/ui';
+import { localePath, t } from '../i18n/utils';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+---
+
+<Base lang={lang} title={t(lang, 'notFound.title')} alternate={false} langSwitchPath="/">
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">404</p>
+      <h1>{t(lang, 'notFound.title')}</h1>
+      <p class="lead">{t(lang, 'notFound.lead')}</p>
+      <p><a class="btn btn-primary" href={localePath(lang, '/')}>{t(lang, 'notFound.home')}</a></p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .lead {
+    margin-block: 16px 32px;
+    color: var(--text-muted);
+  }
+</style>

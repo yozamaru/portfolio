@@ -1,0 +1,168 @@
+---
+import Base from '../layouts/Base.astro';
+import StatusBadge from '../components/StatusBadge.astro';
+import WorkIcon from '../components/WorkIcon.astro';
+import Gallery from '../components/Gallery.astro';
+import Metrics from '../components/Metrics.astro';
+import TranslationNotice from '../components/TranslationNotice.astro';
+import WorkCard from '../components/WorkCard.astro';
+import { formatDate, localePath, t } from '../i18n/utils';
+import { renderWork, type Work } from '../lib/works';
+
+interface Props {
+  work: Work;
+  others: Work[];
+}
+
+const { work, others } = Astro.props;
+const { lang, data } = work;
+Astro.locals.work = work;
+const { Content } = await renderWork(work);
+const canOpen = data.url && data.status !== 'developing' && data.status !== 'archived';
+---
+
+<Base
+  lang={lang}
+  title={data.title}
+  description={data.tagline}
+  ogImage={`/og/${lang}/works/${work.slug}.png`}
+  alternate={work.translation !== 'missing'}
+>
+  <article style={data.accentColor ? `--work-accent:${data.accentColor}` : undefined}>
+    <header class="head">
+      <div class="container">
+        <a class="back" href={localePath(lang, '/#works')}>← {t(lang, 'work.back')}</a>
+        <div class="title-row">
+          <WorkIcon work={work} size={88} eager />
+          <div>
+            <h1>{data.title}</h1>
+            <p class="meta">
+              <StatusBadge lang={lang} status={data.status} />
+              <span>{t(lang, `category.${data.category}`)}</span>
+              {data.releasedAt && <span>{`${t(lang, 'work.released')}: ${formatDate(lang, data.releasedAt)}`}</span>}
+              {!data.releasedAt && data.status === 'developing' && <span>{t(lang, 'work.unreleased')}</span>}
+            </p>
+          </div>
+        </div>
+        <p class="tagline">{data.tagline}</p>
+        <div class="actions">
+          {
+            canOpen && (
+              <a class="btn btn-primary" href={data.url} rel="noopener">
+                {t(lang, 'work.open')} ↗
+              </a>
+            )
+          }
+          {
+            data.repo && (
+              <a class="btn btn-ghost" href={data.repo} rel="noopener">
+                {t(lang, 'work.github')} ↗
+              </a>
+            )
+          }
+        </div>
+        <TranslationNotice lang={lang} translation={work.translation} />
+      </div>
+    </header>
+
+    <div class="container">
+      <Gallery screenshots={data.screenshots} label={t(lang, 'work.screenshots')} />
+      <div class="metrics-wrap">
+        <Metrics metrics={data.metrics} label={t(lang, 'work.metrics')} />
+      </div>
+      <div class="prose body" lang={work.translation === 'missing' ? 'ja' : undefined}>
+        <Content />
+      </div>
+    </div>
+  </article>
+
+  {
+    others.length > 0 && (
+      <section class="section others" aria-labelledby="others-title">
+        <div class="container">
+          <div class="section-head">
+            <h2 id="others-title">{t(lang, 'work.others')}</h2>
+          </div>
+          <ul class="grid">
+            {others.map((w) => (
+              <li>
+                <WorkCard lang={lang} work={w} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+</Base>
+
+<style>
+  .head {
+    padding-block: 32px 28px;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--work-accent, var(--brand)) 9%, transparent),
+      transparent
+    );
+  }
+  .back {
+    display: inline-block;
+    margin-bottom: 24px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+  .back:hover {
+    color: var(--brand);
+  }
+  .title-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 14px;
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+  .tagline {
+    margin-top: 20px;
+    max-width: 44em;
+    font-size: clamp(1.02rem, 0.95rem + 0.3vw, 1.15rem);
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-block: 24px;
+  }
+  .actions:empty {
+    display: none;
+  }
+  .metrics-wrap {
+    margin-top: 24px;
+  }
+  .body {
+    margin-top: 16px;
+  }
+  .body :global(.notice) {
+    margin-top: 32px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 20px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  @media (max-width: 560px) {
+    .title-row {
+      align-items: flex-start;
+    }
+  }
+</style>

@@ -1,0 +1,159 @@
+---
+import StatusBadge from './StatusBadge.astro';
+import WorkIcon from './WorkIcon.astro';
+import type { Lang } from '../i18n/ui';
+import { localePath, t } from '../i18n/utils';
+import type { Work } from '../lib/works';
+
+interface Props {
+  lang: Lang;
+  work: Work;
+  /** 代表作は「見どころ」まで見せる大きいカードにする */
+  variant?: 'featured' | 'compact';
+  eager?: boolean;
+}
+
+const { lang, work, variant = 'compact', eager = false } = Astro.props;
+const { data } = work;
+const detail = localePath(lang, `/works/${work.slug}/`);
+const highlight = data.highlight !== undefined ? data.decisions[data.highlight] : undefined;
+const titleId = `work-${work.slug}-title`;
+---
+
+<article
+  class:list={['card', variant]}
+  aria-labelledby={titleId}
+  style={data.accentColor ? `--work-accent:${data.accentColor}` : undefined}
+>
+  <div class="head">
+    <WorkIcon work={work} size={variant === 'featured' ? 72 : 56} eager={eager} />
+    <div class="meta">
+      <h3 id={titleId}><a href={detail}>{data.title}</a></h3>
+      <p class="sub">
+        <StatusBadge lang={lang} status={data.status} />
+        <span class="muted">{t(lang, `category.${data.category}`)}</span>
+      </p>
+    </div>
+  </div>
+  <p class="tagline">{data.tagline}</p>
+  {
+    variant === 'featured' && highlight && (
+      <div class="highlight">
+        <p class="eyebrow">{t(lang, 'work.highlight')}</p>
+        <p class="hl-title">{highlight.title}</p>
+      </div>
+    )
+  }
+  <ul class="stack" aria-label={t(lang, 'work.stack')}>
+    {data.stack.slice(0, variant === 'featured' ? 6 : 4).map((s) => <li>{s.name}</li>)}
+  </ul>
+  <div class="actions">
+    {
+      data.url && data.status !== 'developing' && data.status !== 'archived' && (
+        <a class="btn btn-primary" href={data.url} rel="noopener">
+          {t(lang, 'work.open')}
+          <span class="visually-hidden">: {data.title}</span>
+        </a>
+      )
+    }
+    <a class="btn btn-ghost" href={detail}>
+      {t(lang, 'work.readMore')}
+      <span class="visually-hidden">: {data.title}</span>
+    </a>
+    {
+      data.repo && (
+        <a class="btn btn-ghost" href={data.repo} rel="noopener">
+          {t(lang, 'work.github')}
+          <span class="visually-hidden">: {data.title}</span>
+        </a>
+      )
+    }
+  </div>
+</article>
+
+<style>
+  .card {
+    --work-accent: var(--brand);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: 100%;
+    padding: 24px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--bg);
+    position: relative;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .card:hover {
+    border-color: color-mix(in srgb, var(--work-accent) 60%, var(--border));
+    box-shadow: var(--shadow);
+  }
+  .featured {
+    padding: clamp(24px, 3vw, 32px);
+    background: linear-gradient(180deg, var(--surface), var(--bg) 70%);
+  }
+  .head {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  .meta {
+    min-width: 0;
+  }
+  h3 {
+    font-size: 1.2rem;
+  }
+  .featured h3 {
+    font-size: 1.4rem;
+  }
+  h3 a {
+    color: var(--text);
+    text-decoration: none;
+  }
+  h3 a:hover {
+    color: var(--brand);
+  }
+  .sub {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    margin-top: 4px;
+    font-size: 0.85rem;
+  }
+  .tagline {
+    color: var(--text-muted);
+  }
+  .highlight {
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    background: var(--brand-soft);
+    border-left: 3px solid var(--accent);
+  }
+  .hl-title {
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .stack li {
+    padding: 2px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: auto;
+  }
+</style>

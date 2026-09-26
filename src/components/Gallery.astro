@@ -1,0 +1,78 @@
+---
+import { Image } from 'astro:assets';
+import type { Work } from '../lib/works';
+
+interface Props {
+  screenshots: Work['data']['screenshots'];
+  label: string;
+}
+
+const { screenshots, label } = Astro.props;
+---
+
+<section class="gallery" aria-label={label}>
+  <ul>
+    {
+      screenshots.map((s, i) => {
+        const portrait = s.src.height > s.src.width;
+        return (
+          <li class:list={[{ portrait, lead: i === 0 }]}>
+            <a href={s.src.src} target="_blank" rel="noopener">
+              <Image
+                src={s.src}
+                alt={s.alt}
+                widths={portrait ? [360, 720] : [640, 1280]}
+                sizes={portrait ? '(max-width: 720px) 80vw, 320px' : '(max-width: 720px) 92vw, 720px'}
+                loading={i === 0 ? 'eager' : 'lazy'}
+                fetchpriority={i === 0 ? 'high' : undefined}
+              />
+            </a>
+          </li>
+        );
+      })
+    }
+  </ul>
+</section>
+
+<style>
+  ul {
+    display: flex;
+    gap: 16px;
+    list-style: none;
+    margin: 0;
+    padding: 4px 4px 16px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+  }
+  li {
+    flex: none;
+    scroll-snap-align: start;
+    width: min(720px, 88vw);
+  }
+  li.portrait {
+    width: min(320px, 72vw);
+  }
+  a {
+    display: block;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    background: var(--surface);
+  }
+  img {
+    width: 100%;
+    height: auto;
+  }
+  li:not(.portrait) img {
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    object-position: top;
+  }
+  li.portrait img {
+    aspect-ratio: 9 / 16;
+    object-fit: cover;
+    object-position: top;
+  }
+</style>

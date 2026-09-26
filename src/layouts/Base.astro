@@ -1,0 +1,127 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE } from '../site';
+import type { Lang } from '../i18n/ui';
+import { HTML_LANG, OG_LOCALE, localePath, stripLang, t } from '../i18n/utils';
+
+interface Props {
+  lang: Lang;
+  title?: string;
+  description?: string;
+  /** /og/... の画像パス */
+  ogImage?: string;
+  /** 英語版が無い（日本語のまま表示している）ページは hreflang を出さない */
+  alternate?: boolean;
+  /** 言語切り替えリンクの行き先（言語の接頭辞を除いたパス）。省略時は同じページの別言語版 */
+  langSwitchPath?: string;
+}
+
+const {
+  lang,
+  title,
+  description = t(lang, 'site.description'),
+  ogImage,
+  alternate = true,
+  langSwitchPath,
+} = Astro.props;
+const siteName = SITE.name[lang];
+const fullTitle = title ? `${title} | ${siteName}` : `${siteName} — ${SITE.role[lang]}`;
+const basePath = stripLang(Astro.url.pathname);
+const canonical = new URL(Astro.url.pathname, SITE.url).href;
+const og = new URL(ogImage ?? `/og/${lang}/site.png`, SITE.url).href;
+const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN;
+---
+
+<!doctype html>
+<html lang={HTML_LANG[lang]}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {
+      alternate && (
+        <>
+          <link rel="alternate" hreflang="ja" href={new URL(localePath('ja', basePath), SITE.url).href} />
+          <link rel="alternate" hreflang="en" href={new URL(localePath('en', basePath), SITE.url).href} />
+          <link rel="alternate" hreflang="x-default" href={new URL(localePath('ja', basePath), SITE.url).href} />
+        </>
+      )
+    }
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#080d1c" media="(prefers-color-scheme: dark)" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:title" content={title ?? fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={og} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content={OG_LOCALE[lang]} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script is:inline>
+      // 描画前にテーマを決めて、ちらつきを防ぐ
+      (function () {
+        var theme;
+        try {
+          theme = localStorage.getItem('theme');
+        } catch (e) {}
+        if (theme !== 'light' && theme !== 'dark') {
+          theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
+    {
+      beaconToken && (
+        <script
+          is:inline
+          defer
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon={JSON.stringify({ token: beaconToken })}
+        />
+      )
+    }
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{t(lang, 'nav.skip')}</a>
+    <Header lang={lang} langSwitchPath={langSwitchPath} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer lang={lang} />
+  </body>
+</html>
+
+<style>
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  main {
+    flex: 1;
+  }
+  .skip-link {
+    position: absolute;
+    left: 16px;
+    top: -100px;
+    z-index: 100;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: var(--brand);
+    color: var(--on-brand);
+    font-weight: 700;
+  }
+  .skip-link:focus {
+    top: 12px;
+  }
+</style>

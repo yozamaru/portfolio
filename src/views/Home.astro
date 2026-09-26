@@ -1,0 +1,105 @@
+---
+import Base from '../layouts/Base.astro';
+import WorkCard from '../components/WorkCard.astro';
+import { SITE } from '../site';
+import type { Lang } from '../i18n/ui';
+import { localePath, t } from '../i18n/utils';
+import { getWorks } from '../lib/works';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const works = await getWorks(lang);
+const featured = works.filter((w) => w.data.featured);
+const others = works.filter((w) => !w.data.featured);
+---
+
+<Base lang={lang}>
+  <section class="hero">
+    <div class="container">
+      <p class="eyebrow">{SITE.role[lang]}</p>
+      <h1>{SITE.name[lang]}</h1>
+      <p class="intro">{SITE.intro[lang]}</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="#works">{t(lang, 'home.cta.works')}</a>
+        <a class="btn btn-ghost" href={localePath(lang, '/contact/')}>{t(lang, 'home.cta.contact')}</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="works" class="section" aria-labelledby="featured-title">
+    <div class="container">
+      <div class="section-head">
+        <h2 id="featured-title">{featured.length > 0 ? t(lang, 'home.featured') : t(lang, 'home.all')}</h2>
+      </div>
+      <ul class="grid featured">
+        {
+          (featured.length > 0 ? featured : works).map((work, i) => (
+            <li>
+              <WorkCard lang={lang} work={work} variant="featured" eager={i < 2} />
+            </li>
+          ))
+        }
+      </ul>
+
+      {
+        featured.length > 0 && others.length > 0 && (
+          <>
+            <div class="section-head others-head">
+              <h2>{t(lang, 'home.all')}</h2>
+            </div>
+            <ul class="grid">
+              {others.map((work) => (
+                <li>
+                  <WorkCard lang={lang} work={work} />
+                </li>
+              ))}
+            </ul>
+          </>
+        )
+      }
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    padding-block: clamp(56px, 10vw, 120px) clamp(24px, 4vw, 40px);
+    background:
+      radial-gradient(60% 80% at 100% 0%, color-mix(in srgb, var(--brand) 12%, transparent), transparent 70%),
+      radial-gradient(40% 60% at 85% 10%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%);
+  }
+  h1 {
+    margin-top: 8px;
+    font-size: clamp(2.4rem, 1.6rem + 3.6vw, 4rem);
+    letter-spacing: -0.03em;
+  }
+  .intro {
+    margin-top: 20px;
+    max-width: 38em;
+    font-size: clamp(1.02rem, 0.95rem + 0.35vw, 1.2rem);
+    color: var(--text-muted);
+  }
+  .cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 32px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 20px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .grid.featured {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  }
+  .others-head {
+    margin-top: 56px;
+  }
+</style>

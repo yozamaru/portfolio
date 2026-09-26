@@ -1,0 +1,16 @@
+---
+import WorkDetail from '../../views/WorkDetail.astro';
+import { getWorks } from '../../lib/works';
+
+export async function getStaticPaths() {
+  const works = await getWorks('ja');
+  return works.map((work) => ({
+    params: { slug: work.slug },
+    props: { work, others: works.filter((w) => w.slug !== work.slug) },
+  }));
+}
+
+const { work, others } = Astro.props;
+---
+
+<WorkDetail work={work} others={others} />

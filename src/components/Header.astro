@@ -1,0 +1,194 @@
+---
+import { SITE } from '../site';
+import type { Lang } from '../i18n/ui';
+import { localePath, stripLang, t } from '../i18n/utils';
+
+interface Props {
+  lang: Lang;
+  langSwitchPath?: string | undefined;
+}
+
+const { lang, langSwitchPath } = Astro.props;
+const otherLang: Lang = lang === 'ja' ? 'en' : 'ja';
+const basePath = stripLang(Astro.url.pathname);
+const current = basePath;
+const nav = [
+  { href: '/#works', label: t(lang, 'nav.works'), match: '/works/' },
+  { href: '/about/', label: t(lang, 'nav.about'), match: '/about/' },
+  { href: '/contact/', label: t(lang, 'nav.contact'), match: '/contact/' },
+];
+---
+
+<header class="header">
+  <div class="container inner">
+    <a class="brand" href={localePath(lang, '/')}>
+      <span class="mark" aria-hidden="true"></span>
+      <span>{SITE.name[lang]}</span>
+    </a>
+    <nav aria-label={t(lang, 'nav.menu')}>
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a
+                href={localePath(lang, item.href)}
+                aria-current={current.startsWith(item.match) ? 'page' : undefined}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <div class="tools">
+      <a
+        class="tool lang"
+        href={localePath(otherLang, langSwitchPath ?? basePath)}
+        hreflang={otherLang}
+        lang={otherLang}
+        aria-label={t(lang, 'lang.switchLabel')}
+      >
+        {t(lang, 'lang.switch')}
+      </a>
+      <button class="tool theme" type="button" data-theme-toggle aria-label={t(lang, 'theme.toggle')}>
+        <svg class="sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.5" fill="currentColor"></circle>
+          <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+            ></path>
+          </g>
+        </svg>
+        <svg class="moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z" fill="currentColor"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<script>
+  const button = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+  const root = document.documentElement;
+  const sync = () => button?.setAttribute('aria-pressed', String(root.dataset.theme === 'dark'));
+  sync();
+  button?.addEventListener('click', () => {
+    const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    root.dataset.theme = next;
+    try {
+      localStorage.setItem('theme', next);
+    } catch {
+      // 保存できない環境（プライベートブラウズなど）でも切り替え自体は効く
+    }
+    sync();
+  });
+</script>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: saturate(160%) blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .inner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 64px;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    font-weight: 800;
+    font-size: 1.05rem;
+    text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+  .mark {
+    width: 22px;
+    height: 22px;
+    border-radius: 7px;
+    background:
+      radial-gradient(circle at 72% 28%, var(--accent) 0 22%, transparent 23%),
+      linear-gradient(135deg, #1d5be0, #0b1f5c);
+  }
+  nav {
+    margin-left: auto;
+  }
+  nav ul {
+    display: flex;
+    gap: 4px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.93rem;
+    text-decoration: none;
+  }
+  nav a:hover,
+  nav a[aria-current='page'] {
+    color: var(--text);
+    background: var(--surface);
+  }
+  .tools {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tool {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .tool:hover {
+    border-color: var(--brand);
+    color: var(--brand);
+  }
+  .theme {
+    padding: 0;
+  }
+  :global([data-theme='dark']) .sun,
+  :global([data-theme='light']) .moon {
+    display: none;
+  }
+  @media (max-width: 640px) {
+    .inner {
+      flex-wrap: wrap;
+      gap: 0 8px;
+      padding-block: 6px;
+    }
+    .tools {
+      margin-left: auto;
+    }
+    nav {
+      order: 3;
+      width: 100%;
+      margin: 0 -12px;
+    }
+  }
+</style>

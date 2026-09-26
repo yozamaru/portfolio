@@ -1,0 +1,66 @@
+---
+import { t } from '../i18n/utils';
+import { currentWork } from '../lib/current-work';
+
+const work = currentWork(Astro);
+const { lang } = work;
+---
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">{t(lang, 'work.stack.name')}</th>
+        <th scope="col">{t(lang, 'work.stack.role')}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        work.data.stack.map((s) => (
+          <tr>
+            <th scope="row">{s.name}</th>
+            <td>{s.role}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
+  th,
+  td {
+    text-align: left;
+    vertical-align: top;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+  thead th {
+    background: var(--surface);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  tbody th {
+    white-space: nowrap;
+    font-weight: 700;
+  }
+  @media (max-width: 560px) {
+    tbody th {
+      white-space: normal;
+      min-width: 8em;
+    }
+  }
+</style>

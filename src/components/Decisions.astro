@@ -1,0 +1,109 @@
+---
+import { t } from '../i18n/utils';
+import { currentWork } from '../lib/current-work';
+
+const work = currentWork(Astro);
+const { lang } = work;
+---
+
+<ol class="decisions">
+  {
+    work.data.decisions.map((d, i) => (
+      <li class="decision" id={`decision-${i + 1}`}>
+        <h3>
+          <span class="num" aria-hidden="true">
+            {String(i + 1).padStart(2, '0')}
+          </span>
+          {d.title}
+        </h3>
+        <dl>
+          <div>
+            <dt>{t(lang, 'work.decision.problem')}</dt>
+            <dd>{d.problem}</dd>
+          </div>
+          {d.options.length > 0 && (
+            <div>
+              <dt>{t(lang, 'work.decision.options')}</dt>
+              <dd>
+                <ul>
+                  {d.options.map((o) => (
+                    <li>{o}</li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          )}
+          <div class="choice">
+            <dt>{t(lang, 'work.decision.choice')}</dt>
+            <dd>{d.choice}</dd>
+          </div>
+          <div>
+            <dt>{t(lang, 'work.decision.outcome')}</dt>
+            <dd>{d.outcome}</dd>
+          </div>
+        </dl>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .decisions {
+    list-style: none;
+    padding: 0 !important;
+    margin: 0;
+    display: grid;
+    gap: 20px;
+  }
+  .decision {
+    margin: 0 !important;
+    padding: clamp(20px, 3vw, 28px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  h3 {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    margin: 0 0 16px !important;
+    font-size: 1.15rem;
+  }
+  .num {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--brand);
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--brand-soft);
+  }
+  dl {
+    display: grid;
+    gap: 14px;
+    margin: 0;
+  }
+  dt {
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+  }
+  dd {
+    margin: 2px 0 0;
+  }
+  dd ul {
+    margin: 0;
+    padding-left: 1.2em;
+  }
+  .choice {
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    border-left: 3px solid var(--accent);
+  }
+  .choice dt {
+    color: var(--text);
+  }
+</style>

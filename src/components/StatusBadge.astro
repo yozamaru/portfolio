@@ -1,0 +1,48 @@
+---
+import type { Lang } from '../i18n/ui';
+import { t } from '../i18n/utils';
+import type { Work } from '../lib/works';
+
+interface Props {
+  lang: Lang;
+  status: Work['data']['status'];
+}
+
+const { lang, status } = Astro.props;
+---
+
+<span class:list={['badge', status]}>{t(lang, `status.${status}`)}</span>
+
+<style>
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.7;
+    white-space: nowrap;
+  }
+  .badge::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .live {
+    background: var(--ok-soft);
+    color: var(--ok);
+  }
+  .beta,
+  .developing {
+    background: var(--warn-soft);
+    color: var(--warn);
+  }
+  .archived {
+    background: var(--muted-soft);
+    color: var(--text-muted);
+  }
+</style>

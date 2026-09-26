@@ -1,0 +1,113 @@
+---
+sourceHash: 'e39290ad1b63'
+title: Himotoku AI
+tagline: A learning service that takes people who only know middle-school math to the point where they understand how AI works, through both equations and Python code, and can build AI models themselves.
+screenshotAlts:
+  - The lesson "What is AI?", explaining the equation y = f(x) side by side with Python code
+  - The home page, introducing the three subjects covered — math, Python, and AI / machine learning
+  - The table of contents of the course "Getting Started with AI and ML", listing lessons and estimated times by chapter
+metrics:
+  - value: '7'
+    label: Chapters
+  - value: '39'
+    label: Lessons
+  - value: '125'
+    label: Exercises (31 of them coding exercises)
+  - value: '24'
+    label: Automated browser tests
+  - value: '¥0'
+    label: Monthly running cost
+stack:
+  - name: Next.js 16
+    role: UI. No server — exported as static files
+  - name: TypeScript
+    role: Implementation language throughout
+  - name: Tailwind CSS
+    role: Styling
+  - name: MDX / KaTeX
+    role: Slide-style lessons and math rendering
+  - name: Pyodide
+    role: Runs Python inside the browser (in a Web Worker, with a time limit)
+  - name: CodeMirror
+    role: Code editor for coding exercises
+  - name: Supabase
+    role: Auth, PostgreSQL, row-level security (RLS), grading functions in the database, progress tracking
+  - name: Cloudflare Workers
+    role: Static file delivery
+  - name: Cloudflare Turnstile
+    role: Bot protection on sign-up
+  - name: Resend
+    role: Sending email
+  - name: Sentry
+    role: Error monitoring (personal data is scrubbed before sending)
+  - name: Vitest / PGlite
+    role: Unit tests, including tests of database function permissions
+  - name: Playwright / axe-core
+    role: Automated browser tests and accessibility checks
+  - name: GitHub Actions
+    role: CI, applying migrations, daily backups with restore tests
+decisions:
+  - title: Grading that cannot be tampered with
+    problem: If the service trusts a "correct" result sent from the browser, anyone with developer tools can mark themselves as passed. This was exactly what went wrong in my previous prototype.
+    options:
+      - Store the result judged in the browser as is
+      - Run a grading server that executes learners' code on the server
+      - Keep the answers hidden inside the database and let only database functions grade
+    choice: Tables holding answers and expected outputs are locked with row-level security. Learners can only call four database functions, each of which verifies the user and is rate-limited to 20 calls per minute. For coding exercises, the database picks three random inputs each time and compares the output produced in the browser against stored expected outputs within a tolerance. Each challenge ID is single-use and expires after 10 minutes.
+    outcome: Every build checks that no answers leak into the exported files, database permissions are tested by reproducing them in PGlite, and a browser test confirms that "passed" cannot be written to the database directly. A known, accepted weakness is that computing the answer by other means in the browser can still pass.
+  - title: No servers, so the running cost stays at ¥0 a month
+    problem: To keep the service running as an individual, the monthly cost had to be zero. I also wanted to avoid executing learners' code on a server.
+    options:
+      - Next.js server features plus a grading server (the original setup)
+      - Static export, Python in the browser, and grading in database functions
+    choice: The Next.js app is exported as static files and delivered by Cloudflare Workers, and Python runs in the browser with Pyodide. Pyodide is served from my own delivery instead of an external CDN.
+    outcome: Both the grading server and the Next.js server are gone, and everything runs within free tiers, set up so that exceeding a limit never triggers automatic charges. The initial download of about 9–28 MB is explained on screen.
+  - title: Where to run the deep learning chapter
+    problem: I wanted the course to reach convolutional neural networks (CNNs), but PyTorch does not run in the browser, and running it on a server raises cost and security concerns.
+    options:
+      - Have learners build it from scratch with NumPy and grade that
+      - Make PyTorch reading-only material
+      - Run a PyTorch grading server
+      - Use TensorFlow.js
+      - Use an unofficial PyTorch-compatible library
+    choice: A combination of building with NumPy for graded exercises and reading PyTorch through a side-by-side mapping. The cost stays at zero and no untrusted code runs on a server.
+    outcome: In measurements, a small CNN trains in the browser in 0.6 seconds and reaches 93% accuracy. A monthly CI job verifies that the PyTorch mapping is still correct.
+---
+
+import Decisions from '../../../components/Decisions.astro';
+import TechStack from '../../../components/TechStack.astro';
+
+## Why I built it
+
+The service is for people who know middle-school math but little of high-school or university math, and who have touched basic Python but never used NumPy or PyTorch.
+
+Introductory AI material tends to be either all equations or all code, so it is hard to see how the equations are actually used in code and in AI models. Himotoku AI goes back and forth between equations and Python code so that learners understand the meaning, with the goal of designing, implementing, and evaluating AI models on their own.
+
+## Key features
+
+- **Slide-style lessons**: Learn with slides that include equations and diagrams. Lessons can be read without signing in.
+- **Five exercise types**: Single choice, multiple choice, fill-in-the-blank, numeric input, and code fill-in.
+- **Python in the browser**: Code runs on the spot, and Python errors are explained in plain Japanese.
+- **Answers only after solving or giving up**: Learners cannot peek at the answer first.
+- **Progress tracking**: A personal page shows how far you have come and which lessons are complete.
+
+## Design decisions
+
+<Decisions />
+
+## Tech stack
+
+<TechStack />
+
+## Quality and operations
+
+- **Tests**: Vitest unit tests confirm, for all 31 coding exercises, that the model answer passes and wrong answers fail. Playwright browser tests cover accessibility, making sure no lesson overflows on phone-sized screens, tamper resistance, password reset, and more.
+- **CI**: Lint, unit tests, build, and export checks run on every change. Migrations are applied automatically, and every day an encrypted backup is taken, restored into a throwaway database, and its row counts compared.
+- **Security and privacy**: Security headers such as CSP and HSTS are set. Sign-ups under age 13 are rejected, dates of birth are deleted once verified, and IP addresses are not recorded.
+- **Cost**: Apart from the yearly domain fee, everything runs on free tiers.
+
+## Looking back and ahead
+
+In my previous prototype, I hard-coded lesson content into the code and trusted grading results sent from the browser. This time I separated the content as data and designed grading so that trust is enforced in the database layer.
+
+Next, if the number of learners grows, I will revisit a PyTorch grading server. If I issue certificates of completion, I plan to re-run only that part on a server.

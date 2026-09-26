@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: 型チェック（Astro と Worker）
+        run: npm run check
+      - name: 単体テスト
+        run: npm test
+      - name: ビルド（作品データのスキーマ検証を含む）
+        run: npm run build
+      - name: リンク切れの確認
+        run: npm run check:links
+      - name: 英訳が古くなっていないかの確認（警告のみ）
+        run: npm run check:translations
