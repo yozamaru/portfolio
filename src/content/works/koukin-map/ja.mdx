@@ -4,6 +4,7 @@ tagline: 沖縄県と県内41市町村の収入と支出を、予算書・決算
 icon: ./icon.png
 status: developing
 category: webapp
+url: https://koukinmap.naomaru.app
 featured: true
 accentColor: '#0b5cad'
 highlight: 0
@@ -32,7 +33,7 @@ stack:
   - name: Google フォーム
     role: 利用者からの誤りの報告と、氏名非公開の申し出の受け付け
   - name: Cloudflare Workers
-    role: 静的ファイルの配信（公開時に使う予定）
+    role: 静的ファイルの配信
 decisions:
   - title: 検算が合わないデータは公開しない
     problem: 自治体の予算書・決算書はPDFで、様式も自治体や年度ごとに違う。自動で読み取ると、列の取り違えや読み違いが起きる。誤った金額を「税金の使い道」として出すわけにはいかない。

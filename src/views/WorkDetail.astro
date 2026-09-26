@@ -18,7 +18,8 @@ const { work, others } = Astro.props;
 const { lang, data } = work;
 Astro.locals.work = work;
 const { Content } = await renderWork(work);
-const canOpen = data.url && data.status !== 'developing' && data.status !== 'archived';
+// 開発中の作品も、試せる URL があれば開けるようにする。停止中（archived）だけは出さない
+const canOpen = data.url && data.status !== 'archived';
 ---
 
 <Base

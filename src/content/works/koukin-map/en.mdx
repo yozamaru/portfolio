@@ -1,5 +1,5 @@
 ---
-sourceHash: '66acf4523228'
+sourceHash: 'd9a653547c34'
 title: Koukin Map
 tagline: A service that covers every line of revenue and spending for Okinawa Prefecture and its 41 municipalities, down to the finest level of their budget and settlement books, so anyone can check where tax money goes, with sources.
 screenshotAlts:
@@ -24,7 +24,7 @@ stack:
   - name: Google Forms
     role: Receiving error reports and requests to withhold personal names
   - name: Cloudflare Workers
-    role: Serving static files (planned for launch)
+    role: Serving static files
 decisions:
   - title: Data that fails its checks is never published
     problem: Municipal budget and settlement books are PDFs, and their layout varies by municipality and year. Automated extraction can misread values or mix up columns, and wrong figures cannot be presented as "how your taxes were spent."

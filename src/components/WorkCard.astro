@@ -49,7 +49,7 @@ const titleId = `work-${work.slug}-title`;
   </ul>
   <div class="actions">
     {
-      data.url && data.status !== 'developing' && data.status !== 'archived' && (
+      data.url && data.status !== 'archived' && (
         <a class="btn btn-primary" href={data.url} rel="noopener">
           {t(lang, 'work.open')}
           <span class="visually-hidden">: {data.title}</span>
