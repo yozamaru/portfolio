@@ -14,7 +14,7 @@ const otherLang: Lang = lang === 'ja' ? 'en' : 'ja';
 const basePath = stripLang(Astro.url.pathname);
 const current = basePath;
 const nav = [
-  { href: '/#works', label: t(lang, 'nav.works'), match: '/works/' },
+  { href: '/#projects', label: t(lang, 'nav.works'), match: '/projects/' },
   { href: '/about/', label: t(lang, 'nav.about'), match: '/about/' },
   { href: '/contact/', label: t(lang, 'nav.contact'), match: '/contact/' },
 ];

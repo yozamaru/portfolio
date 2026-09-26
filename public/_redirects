@@ -1,0 +1,6 @@
+# Cloudflare Workers の静的アセット配信が読むリダイレクト設定
+# 作品ページの URL を /works/ から /projects/ に変えたので、古い URL を転送する
+/works/*        /projects/:splat        301
+/en/works/*     /en/projects/:splat     301
+/og/ja/works/*  /og/ja/projects/:splat  301
+/og/en/works/*  /og/en/projects/:splat  301

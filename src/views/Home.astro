@@ -25,7 +25,7 @@ const others = works.filter((w) => !w.data.featured);
         <h1>{SITE.name[lang]}</h1>
         <p class="intro">{SITE.intro[lang]}</p>
         <div class="cta">
-          <a class="btn btn-primary" href="#works">{t(lang, 'home.cta.works')}</a>
+          <a class="btn btn-primary" href="#projects">{t(lang, 'home.cta.works')}</a>
           <a class="btn btn-ghost" href={localePath(lang, '/contact/')}>{t(lang, 'home.cta.contact')}</a>
         </div>
       </div>
@@ -40,7 +40,7 @@ const others = works.filter((w) => !w.data.featured);
     </div>
   </section>
 
-  <section id="works" class="section" aria-labelledby="featured-title">
+  <section id="projects" class="section" aria-labelledby="featured-title">
     <div class="container">
       <div class="section-head">
         <h2 id="featured-title">{featured.length > 0 ? t(lang, 'home.featured') : t(lang, 'home.all')}</h2>

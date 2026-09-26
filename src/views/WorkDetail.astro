@@ -26,13 +26,13 @@ const canOpen = data.url && data.status !== 'archived';
   lang={lang}
   title={data.title}
   description={data.tagline}
-  ogImage={`/og/${lang}/works/${work.slug}.png`}
+  ogImage={`/og/${lang}/projects/${work.slug}.png`}
   alternate={work.translation !== 'missing'}
 >
   <article style={data.accentColor ? `--work-accent:${data.accentColor}` : undefined}>
     <header class="head">
       <div class="container">
-        <a class="back" href={localePath(lang, '/#works')}>← {t(lang, 'work.back')}</a>
+        <a class="back" href={localePath(lang, '/#projects')}>← {t(lang, 'work.back')}</a>
         <div class="title-row">
           <WorkIcon work={work} size={88} eager />
           <div>

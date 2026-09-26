@@ -15,7 +15,7 @@ interface Props {
 
 const { lang, work, variant = 'compact', eager = false } = Astro.props;
 const { data } = work;
-const detail = localePath(lang, `/works/${work.slug}/`);
+const detail = localePath(lang, `/projects/${work.slug}/`);
 const titleId = `work-${work.slug}-title`;
 ---
 
