@@ -1,18 +1,11 @@
 ---
-sourceHash: '9bfac47ed072'
+sourceHash: '1e05bba9eca3'
 title: B.PREDICT (working title)
 tagline: An unofficial tool that predicts B.LEAGUE win probabilities, scores, and player stats with statistical models, and openly publishes the reasoning behind each prediction along with its own track record.
 screenshotAlts:
   - A game prediction screen showing both teams' win probabilities, the predicted score, and the factors behind the prediction (synthetic data with fictional clubs)
   - The accuracy page, charting actual win rates against predicted probabilities to show how well-calibrated the predictions are (synthetic data)
   - Today's predictions, with a win-probability bar for each game (synthetic data)
-metrics:
-  - value: ~2,500
-    label: Games ingested (5 seasons)
-  - value: '915'
-    label: Automated tests (Python 672 / TypeScript 243)
-  - value: '¥0'
-    label: Yearly running cost (all free tiers)
 stack:
   - name: Next.js 16
     role: UI. Exported as static files and delivered by Cloudflare Pages
@@ -87,7 +80,7 @@ Before each game, it shows the odds as numbers and explains in plain language wh
 
 ## Quality and operations
 
-- **Tests**: 915 automated tests across Python and TypeScript.
+- **Tests**: Automated tests cover both the Python batch jobs (ingestion, features, training) and the TypeScript API.
 - **CI**: ruff, mypy, and pytest for Python; type checks, lint, and Vitest for the API. The UI is checked for types and lint, as well as text contrast (at least 4.5:1), JavaScript size, the number of exported files, and broken links. CI also verifies that no strings from real websites slip into test fixtures.
 - **Responsible data collection**: robots.txt and the terms of use are compared against known versions, and collection stops if they change. Requests are at least 3 seconds apart and capped at 3,000 per day, collection stops on 429 or 503 responses, and raw HTML is never stored.
 - **Monitoring**: A daily job checks that the parser still works correctly.

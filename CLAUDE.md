@@ -12,7 +12,7 @@ naomaru.app のポートフォリオサイト。企画は `docs/PLAN.md`、構�
    - 本文は `## なぜ作ったか` → `## 主な機能` → `## 設計の判断`（`<Decisions />`）→ `## 技術構成`（`<TechStack />`）→ `## 品質と運用` → `## 振り返りとこれから` の順。
    - `<Decisions />` と `<TechStack />` は frontmatter の `decisions` と `stack` を表示する部品。MDX の先頭で import する。
    - `decisions` は2〜4件。`options`（検討した選択肢）は、実際に検討した記録がなければ書かない。作り話をしない。
-   - 数字（`metrics`）は、リポジトリで数え直すか本人に確認した値だけを書く。
+   - 数字（`metrics`）は載せない方針（本人の判断）。書かなければ「数字」の欄は表示されない。
 4. 英訳 `en.mdx` を作る（下の「翻訳のルール」）。
 5. `npm run build && npm run check:links && npm run check:translations` が通ることを確かめる。
 
@@ -24,7 +24,7 @@ naomaru.app のポートフォリオサイト。企画は `docs/PLAN.md`、構�
 
 - 日本語（`ja.mdx`）が正。英語（`en.mdx`）は任意で、無ければ英語ページは日本語のまま表示される。
 - 翻訳は AI が担当する。**`ja.mdx` を変更したら、同じ作業の中で `en.mdx` も更新する。**
-- `en.mdx` に書くのは翻訳する項目だけ（`title`, `tagline`, `screenshotAlts`, `metrics`, `stack`, `decisions` と本文）。URL・状態・日付・画像などは `ja.mdx` の値が使われる。
+- `en.mdx` に書くのは翻訳する項目だけ（`title`, `tagline`, `screenshotAlts`, `stack`, `decisions` と本文）。URL・状態・日付・画像などは `ja.mdx` の値が使われる。
 - 英訳を更新したら `npm run translations:hash -- <slug> --write` で `sourceHash` をそろえる。
   そろっていないと、ビルド後の英語ページに「翻訳が古い」注記が出て、CI で警告が出る。
 - `npm run check:translations` で全作品の状態を確認できる。

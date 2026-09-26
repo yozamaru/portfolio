@@ -5,8 +5,7 @@ export const SITE = {
   url: 'https://naomaru.app',
   repo: 'https://github.com/yozamaru/portfolio',
   github: 'https://github.com/yozamaru',
-  /** TODO: 本名に差し替える（企画書 §3：本名を出す） */
-  name: { ja: 'naomaru', en: 'naomaru' },
+  name: { ja: '與座 直寛', en: 'Naohiro Yoza' },
   /** トップページの肩書き */
   role: {
     ja: 'プロダクトエンジニア',

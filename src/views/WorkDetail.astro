@@ -67,9 +67,13 @@ const canOpen = data.url && data.status !== 'developing' && data.status !== 'arc
 
     <div class="container">
       <Gallery screenshots={data.screenshots} label={t(lang, 'work.screenshots')} />
-      <div class="metrics-wrap">
-        <Metrics metrics={data.metrics} label={t(lang, 'work.metrics')} />
-      </div>
+      {
+        data.metrics.length > 0 && (
+          <div class="metrics-wrap">
+            <Metrics metrics={data.metrics} label={t(lang, 'work.metrics')} />
+          </div>
+        )
+      }
       <div class="prose body" lang={work.translation === 'missing' ? 'ja' : undefined}>
         <Content />
       </div>

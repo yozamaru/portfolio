@@ -16,13 +16,6 @@ screenshots:
     alt: 的中率の画面。予測した勝率ごとに実際の勝率を並べたグラフで、確率がどれだけ正確かを示している（合成データ）
   - src: ./screenshots/today.webp
     alt: 今日の予測の一覧。試合ごとに勝敗確率のバーが並ぶ（合成データ）
-metrics:
-  - value: 約2,500
-    label: 取り込み済みの試合（5シーズン）
-  - value: '915'
-    label: 自動テスト（Python 672 / TypeScript 243）
-  - value: '0円'
-    label: 年間の運用費（すべて無料枠）
 stack:
   - name: Next.js 16
     role: 画面。静的に書き出し、Cloudflare Pages で配信する
@@ -97,7 +90,7 @@ import TechStack from '../../../components/TechStack.astro';
 
 ## 品質と運用
 
-- **テスト**：Python と TypeScript で合わせて915件の自動テストがあります。
+- **テスト**：データ取り込み・特徴量・学習のバッチ（Python）と API（TypeScript）に自動テストがあります。
 - **CI**：Python は ruff・mypy・pytest、API は型チェック・lint・Vitest を実行します。画面は型チェックと lint に加えて、文字色のコントラスト（4.5:1 以上）、JavaScript の容量、書き出すファイルの数、リンク切れを検査します。テスト用のデータに実在サイト由来の文字列が紛れていないかも確かめています。
 - **データ取り込みの作法**：robots.txt と利用規約の内容を照合し、変わっていたら取得を止めます。リクエストの間隔は3秒以上、1日3,000リクエストまでとし、429 や 503 が返ったら中止します。取得した HTML はそのまま保存しません。
 - **監視**：パーサが今も正しく動くかを、毎日決まった時刻に確かめています。
