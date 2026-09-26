@@ -8,7 +8,7 @@ import type { Work } from '../lib/works';
 interface Props {
   lang: Lang;
   work: Work;
-  /** 代表作は「見どころ」まで見せる大きいカードにする */
+  /** 代表作は大きいカードにする */
   variant?: 'featured' | 'compact';
   eager?: boolean;
 }
@@ -16,7 +16,6 @@ interface Props {
 const { lang, work, variant = 'compact', eager = false } = Astro.props;
 const { data } = work;
 const detail = localePath(lang, `/works/${work.slug}/`);
-const highlight = data.highlight !== undefined ? data.decisions[data.highlight] : undefined;
 const titleId = `work-${work.slug}-title`;
 ---
 
@@ -36,14 +35,6 @@ const titleId = `work-${work.slug}-title`;
     </div>
   </div>
   <p class="tagline">{data.tagline}</p>
-  {
-    variant === 'featured' && highlight && (
-      <div class="highlight">
-        <p class="eyebrow">{t(lang, 'work.highlight')}</p>
-        <p class="hl-title">{highlight.title}</p>
-      </div>
-    )
-  }
   <ul class="stack" aria-label={t(lang, 'work.stack')}>
     {data.stack.slice(0, variant === 'featured' ? 6 : 4).map((s) => <li>{s.name}</li>)}
   </ul>
@@ -124,16 +115,6 @@ const titleId = `work-${work.slug}-title`;
   }
   .tagline {
     color: var(--text-muted);
-  }
-  .highlight {
-    padding: 14px 16px;
-    border-radius: var(--radius-sm);
-    background: var(--brand-soft);
-    border-left: 3px solid var(--accent);
-  }
-  .hl-title {
-    font-weight: 700;
-    margin-top: 2px;
   }
   .stack {
     display: flex;

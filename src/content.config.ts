@@ -56,8 +56,6 @@ const works = defineCollection({
       metrics: z.array(metric).default([]),
       stack: z.array(stackItem).min(1),
       decisions: z.array(decision).default([]),
-      /** 作品カードで「見どころ」として見せる decisions の添字 */
-      highlight: z.number().int().nonnegative().optional(),
     }),
 });
 
