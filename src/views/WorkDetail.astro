@@ -49,8 +49,9 @@ const canOpen = data.url && data.status !== 'archived';
         <div class="actions">
           {
             canOpen && (
-              <a class="btn btn-primary" href={data.url} rel="noopener">
+              <a class="btn btn-primary" href={data.url} target="_blank" rel="noopener">
                 {t(lang, 'work.open')} ↗
+                <span class="visually-hidden">{t(lang, 'work.newTab')}</span>
               </a>
             )
           }

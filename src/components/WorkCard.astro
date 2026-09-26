@@ -41,9 +41,9 @@ const titleId = `work-${work.slug}-title`;
   <div class="actions">
     {
       data.url && data.status !== 'archived' && (
-        <a class="btn btn-primary" href={data.url} rel="noopener">
+        <a class="btn btn-primary" href={data.url} target="_blank" rel="noopener">
           {t(lang, 'work.open')}
-          <span class="visually-hidden">: {data.title}</span>
+          <span class="visually-hidden">: {data.title}{t(lang, 'work.newTab')}</span>
         </a>
       )
     }
