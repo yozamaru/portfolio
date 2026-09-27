@@ -1,0 +1,44 @@
+---
+/** ページの終わりに置く、お問い合わせへの導線 */
+import type { Lang } from '../i18n/ui';
+import { localePath, t } from '../i18n/utils';
+
+interface Props {
+  lang: Lang;
+  /** work：プロジェクトの詳細ページ用の文言にする */
+  context?: 'site' | 'work';
+}
+
+const { lang, context = 'site' } = Astro.props;
+---
+
+<section class="cta" aria-labelledby={`cta-title-${context}`}>
+  <div>
+    <h2 id={`cta-title-${context}`}>{t(lang, 'cta.title')}</h2>
+    <p>{context === 'work' ? t(lang, 'cta.work') : t(lang, 'cta.body')}</p>
+  </div>
+  <a class="btn btn-primary" href={localePath(lang, '/contact/')}>{t(lang, 'cta.button')} →</a>
+</section>
+
+<style>
+  .cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px 32px;
+    padding: clamp(24px, 4vw, 40px);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background:
+      radial-gradient(80% 140% at 100% 0%, color-mix(in srgb, var(--brand) 14%, transparent), transparent 70%),
+      var(--surface);
+  }
+  h2 {
+    font-size: clamp(1.2rem, 1.1rem + 0.6vw, 1.5rem);
+  }
+  p {
+    margin-top: 6px;
+    color: var(--text-muted);
+  }
+</style>

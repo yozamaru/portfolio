@@ -1,7 +1,7 @@
 ---
 import { SITE } from '../site';
 import type { Lang } from '../i18n/ui';
-import { t } from '../i18n/utils';
+import { localePath, t } from '../i18n/utils';
 
 interface Props {
   lang: Lang;
@@ -15,6 +15,7 @@ const year = new Date().getFullYear();
   <div class="container inner">
     <p>© {year} {SITE.name[lang]}</p>
     <ul>
+      <li><a href={localePath(lang, '/contact/')}>{t(lang, 'nav.contact')}</a></li>
       <li><a href={SITE.github} target="_blank" rel="me noopener">GitHub<span class="visually-hidden">{t(lang, 'work.newTab')}</span></a></li>
       <li><a href={SITE.repo} target="_blank" rel="noopener">{t(lang, 'footer.source')}<span class="visually-hidden">{t(lang, 'work.newTab')}</span></a></li>
     </ul>
@@ -33,7 +34,8 @@ const year = new Date().getFullYear();
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 8px 24px;
-    padding-block: 28px;
+    align-items: center;
+    padding-block: 20px;
   }
   ul {
     display: flex;
@@ -44,6 +46,9 @@ const year = new Date().getFullYear();
     padding: 0;
   }
   a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
     color: var(--text-muted);
   }
   a:hover {

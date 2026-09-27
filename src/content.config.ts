@@ -38,6 +38,8 @@ const works = defineCollection({
   schema: ({ image }) =>
     z.object({
       title: z.string(),
+      /** 名前だけでは中身が伝わらないときの短い補足（主に英訳で使う） */
+      subtitle: z.string().max(80).optional(),
       tagline: z.string().max(160),
       icon: image(),
       status: z.enum(STATUSES),
@@ -65,6 +67,7 @@ const worksEn = defineCollection({
     /** 翻訳元 ja.mdx のハッシュ。npm run translations:hash -- <slug> で更新する */
     sourceHash: z.string().regex(/^[0-9a-f]{12}$/),
     title: z.string().optional(),
+    subtitle: z.string().max(80).optional(),
     tagline: z.string().max(260),
     screenshotAlts: z.array(z.string()).optional(),
     metrics: z.array(metric).optional(),

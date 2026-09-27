@@ -1,4 +1,5 @@
 ---
+import { Image } from 'astro:assets';
 import StatusBadge from './StatusBadge.astro';
 import WorkIcon from './WorkIcon.astro';
 import type { Lang } from '../i18n/ui';
@@ -8,73 +9,95 @@ import type { Work } from '../lib/works';
 interface Props {
   lang: Lang;
   work: Work;
-  /** 代表作は大きいカードにする */
+  /** 代表作は画面つきの大きいカードにする */
   variant?: 'featured' | 'compact';
+  /** 横長のレイアウト（画面を左、説明を右）。一覧の先頭の1件に使う */
+  wide?: boolean;
   eager?: boolean;
 }
 
-const { lang, work, variant = 'compact', eager = false } = Astro.props;
+const { lang, work, variant = 'compact', wide = false, eager = false } = Astro.props;
 const { data } = work;
 const detail = localePath(lang, `/projects/${work.slug}/`);
 const titleId = `work-${work.slug}-title`;
+const shot = variant === 'featured' ? data.screenshots[0] : undefined;
+const portrait = shot ? shot.src.height > shot.src.width : false;
+// 開発中の作品は、完成品と誤解されないよう「プレビュー」として控えめなボタンにする
+const developing = data.status === 'developing';
 ---
 
 <article
-  class:list={['card', variant]}
+  class:list={['card', variant, { wide }]}
   aria-labelledby={titleId}
   style={data.accentColor ? `--work-accent:${data.accentColor}` : undefined}
 >
-  <div class="head">
-    <WorkIcon work={work} size={variant === 'featured' ? 72 : 56} eager={eager} />
-    <div class="meta">
-      <h3 id={titleId}><a href={detail}>{data.title}</a></h3>
-      <p class="sub">
-        <StatusBadge lang={lang} status={data.status} />
-        <span class="muted">{t(lang, `category.${data.category}`)}</span>
-      </p>
+  {
+    shot && (
+      <a class:list={['shot', { portrait }]} href={detail} tabindex="-1" aria-hidden="true">
+        <Image
+          src={shot.src}
+          alt=""
+          widths={portrait ? [240, 480] : [480, 960]}
+          sizes={wide ? '(max-width: 820px) 92vw, 520px' : '(max-width: 820px) 92vw, 480px'}
+          loading={eager ? 'eager' : 'lazy'}
+        />
+      </a>
+    )
+  }
+  <div class="content">
+    <div class="head">
+      <WorkIcon work={work} size={variant === 'featured' ? 64 : 56} eager={eager} />
+      <div class="meta">
+        <h3 id={titleId}><a href={detail}>{data.title}</a></h3>
+        {data.subtitle && <p class="subtitle">{data.subtitle}</p>}
+        <p class="sub">
+          <StatusBadge lang={lang} status={data.status} />
+          <span class="muted">{t(lang, `category.${data.category}`)}</span>
+        </p>
+      </div>
     </div>
-  </div>
-  <p class="tagline">{data.tagline}</p>
-  <ul class="stack" aria-label={t(lang, 'work.stack')}>
-    {data.stack.slice(0, variant === 'featured' ? 6 : 4).map((s) => <li>{s.name}</li>)}
-  </ul>
-  <div class="actions">
-    {
-      data.url && data.status !== 'archived' && (
-        <a
-          class="btn btn-primary"
-          href={data.url}
-          target="_blank"
-          rel="noopener"
-          data-track="service"
-          data-project={work.slug}
-          data-placement="card"
-        >
-          {t(lang, 'work.open')}
-          <span class="visually-hidden">: {data.title}{t(lang, 'work.newTab')}</span>
-        </a>
-      )
-    }
-    <a class="btn btn-ghost" href={detail}>
-      {t(lang, 'work.readMore')}
-      <span class="visually-hidden">: {data.title}</span>
-    </a>
-    {
-      data.repo && (
-        <a
-          class="btn btn-ghost"
-          href={data.repo}
-          target="_blank"
-          rel="noopener"
-          data-track="github"
-          data-project={work.slug}
-          data-placement="card"
-        >
-          {t(lang, 'work.github')}
-          <span class="visually-hidden">: {data.title}{t(lang, 'work.newTab')}</span>
-        </a>
-      )
-    }
+    <p class="tagline">{data.tagline}</p>
+    <ul class="stack" aria-label={t(lang, 'work.stack')}>
+      {data.stack.slice(0, variant === 'featured' ? 6 : 4).map((s) => <li>{s.name}</li>)}
+    </ul>
+    <div class="actions">
+      {
+        data.url && data.status !== 'archived' && (
+          <a
+            class:list={['btn', developing ? 'btn-ghost' : 'btn-primary']}
+            href={data.url}
+            target="_blank"
+            rel="noopener"
+            data-track="service"
+            data-project={work.slug}
+            data-placement="card"
+          >
+            {t(lang, developing ? 'work.preview' : 'work.open')}
+            <span class="visually-hidden">: {data.title}{t(lang, 'work.newTab')}</span>
+          </a>
+        )
+      }
+      <a class:list={['btn', developing ? 'btn-primary' : 'btn-ghost']} href={detail}>
+        {t(lang, 'work.readMore')}
+        <span class="visually-hidden">: {data.title}</span>
+      </a>
+      {
+        data.repo && (
+          <a
+            class="btn btn-ghost"
+            href={data.repo}
+            target="_blank"
+            rel="noopener"
+            data-track="github"
+            data-project={work.slug}
+            data-placement="card"
+          >
+            {t(lang, 'work.github')}
+            <span class="visually-hidden">: {data.title}{t(lang, 'work.newTab')}</span>
+          </a>
+        )
+      }
+    </div>
   </div>
 </article>
 
@@ -83,23 +106,87 @@ const titleId = `work-${work.slug}-title`;
     --work-accent: var(--brand);
     display: flex;
     flex-direction: column;
-    gap: 16px;
     height: 100%;
-    padding: 24px;
     border-radius: var(--radius);
     border: 1px solid var(--border);
     background: var(--bg);
-    position: relative;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    overflow: hidden;
+    transition:
+      border-color 0.15s,
+      box-shadow 0.15s,
+      transform 0.15s;
   }
   .card:hover {
     border-color: color-mix(in srgb, var(--work-accent) 60%, var(--border));
     box-shadow: var(--shadow);
   }
-  .featured {
-    padding: clamp(24px, 3vw, 32px);
-    background: linear-gradient(180deg, var(--surface), var(--bg) 70%);
+  @media (prefers-reduced-motion: no-preference) {
+    .card:hover {
+      transform: translateY(-2px);
+    }
   }
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1;
+    padding: 24px;
+  }
+  .featured .content {
+    padding: clamp(22px, 3vw, 30px);
+  }
+
+  /* 画面 */
+  .shot {
+    display: block;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+    background:
+      radial-gradient(90% 90% at 50% 0%, color-mix(in srgb, var(--work-accent) 18%, transparent), transparent 70%),
+      var(--surface);
+  }
+  .shot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+    transition: transform 0.3s;
+  }
+  /* 縦長（スマホの画面）は切らずに、背景の上に端末の画面として見せる */
+  .shot.portrait {
+    display: flex;
+    justify-content: center;
+    padding-top: 20px;
+  }
+  .shot.portrait img {
+    width: auto;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 8px 24px rgb(14 22 48 / 0.18);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .card:hover .shot:not(.portrait) img {
+      transform: scale(1.02);
+    }
+  }
+
+  /* 横長のカード：画面を左、説明を右に */
+  @media (min-width: 820px) {
+    .wide {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    }
+    .wide .shot {
+      aspect-ratio: auto;
+      height: 100%;
+      min-height: 340px;
+      border-bottom: 0;
+      border-right: 1px solid var(--border);
+    }
+  }
+
   .head {
     display: flex;
     gap: 16px;
@@ -112,7 +199,7 @@ const titleId = `work-${work.slug}-title`;
     font-size: 1.2rem;
   }
   .featured h3 {
-    font-size: 1.4rem;
+    font-size: 1.35rem;
   }
   h3 a {
     color: var(--text);
@@ -120,6 +207,25 @@ const titleId = `work-${work.slug}-title`;
   }
   h3 a:hover {
     color: var(--brand);
+  }
+  /* カード全体をリンクの押せる範囲にする */
+  h3 a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  .card {
+    position: relative;
+  }
+  .actions,
+  .shot {
+    position: relative;
+    z-index: 1;
+  }
+  .subtitle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
   }
   .sub {
     display: flex;

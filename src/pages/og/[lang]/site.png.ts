@@ -10,7 +10,7 @@ export const GET: APIRoute = async ({ params }) => {
   const lang = params.lang as Lang;
   const png = await renderOg({
     title: SITE.name[lang],
-    subtitle: `${SITE.role[lang]} — ${t(lang, 'site.description')}`,
+    subtitle: `${SITE.role[lang]} — ${t(lang, 'home.catch')}`,
     footer: 'naomaru.app',
     iconPath: assetFsPath(SITE.icon),
   });

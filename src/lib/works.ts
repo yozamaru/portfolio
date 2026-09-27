@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import type { Lang } from '../i18n/ui';
 import { sourceHash } from './source-hash.mjs';
+import { categoryOf, normalizeStackName, STACK_CATEGORIES, type StackCategory } from './stack';
 
 type JaEntry = CollectionEntry<'works'>;
 type EnEntry = CollectionEntry<'worksEn'>;
@@ -43,6 +44,7 @@ function localize(ja: JaEntry, en: EnEntry | undefined, lang: Lang): Work {
     data: {
       ...ja.data,
       title: e.title ?? ja.data.title,
+      subtitle: e.subtitle ?? ja.data.subtitle,
       tagline: e.tagline,
       screenshots,
       metrics: e.metrics ?? ja.data.metrics,
@@ -85,17 +87,28 @@ export async function renderWork(work: Work) {
   return render(work.bodyEntry);
 }
 
-/** About ページ用：全作品の技術を名前ごとにまとめる */
-export function aggregateStack(works: Work[]): { name: string; works: Work[] }[] {
+export interface StackGroup {
+  category: StackCategory;
+  items: { name: string; works: Work[] }[];
+}
+
+/** About ページ用：全作品の技術を、表記をそろえたうえで分類ごとにまとめる */
+export function aggregateStack(works: Work[]): StackGroup[] {
   const map = new Map<string, Work[]>();
   for (const work of works) {
     for (const { name } of work.data.stack) {
-      const list = map.get(name) ?? [];
-      if (!list.includes(work)) list.push(work);
-      map.set(name, list);
+      for (const normalized of normalizeStackName(name)) {
+        const list = map.get(normalized) ?? [];
+        if (!list.includes(work)) list.push(work);
+        map.set(normalized, list);
+      }
     }
   }
-  return [...map.entries()]
+  const items = [...map.entries()]
     .map(([name, ws]) => ({ name, works: ws }))
     .sort((a, b) => b.works.length - a.works.length || a.name.localeCompare(b.name));
+  return STACK_CATEGORIES.map((category) => ({
+    category,
+    items: items.filter((item) => categoryOf(item.name) === category),
+  })).filter((group) => group.items.length > 0);
 }

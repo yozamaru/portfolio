@@ -6,6 +6,7 @@ import Gallery from '../components/Gallery.astro';
 import Metrics from '../components/Metrics.astro';
 import TranslationNotice from '../components/TranslationNotice.astro';
 import WorkCard from '../components/WorkCard.astro';
+import ContactCta from '../components/ContactCta.astro';
 import { formatDate, localePath, t } from '../i18n/utils';
 import { renderWork, type Work } from '../lib/works';
 
@@ -17,9 +18,23 @@ interface Props {
 const { work, others } = Astro.props;
 const { lang, data } = work;
 Astro.locals.work = work;
-const { Content } = await renderWork(work);
+const { Content, headings } = await renderWork(work);
 // 開発中の作品も、試せる URL があれば開けるようにする。停止中（archived）だけは出さない
 const canOpen = data.url && data.status !== 'archived';
+// 開発中は完成品と誤解されないよう「プレビュー」として控えめなボタンにする
+const developing = data.status === 'developing';
+const toc = headings.filter((h) => h.depth === 2);
+const keyDecision = data.decisions[0]?.title;
+const statusText = [
+  t(lang, `status.${data.status}`),
+  data.releasedAt
+    ? `${t(lang, 'work.released')}: ${formatDate(lang, data.releasedAt)}`
+    : developing
+      ? t(lang, 'work.unreleased')
+      : undefined,
+]
+  .filter(Boolean)
+  .join(' / ');
 ---
 
 <Base
@@ -37,6 +52,7 @@ const canOpen = data.url && data.status !== 'archived';
           <WorkIcon work={work} size={88} eager />
           <div>
             <h1>{data.title}</h1>
+            {data.subtitle && <p class="subtitle">{data.subtitle}</p>}
             <p class="meta">
               <StatusBadge lang={lang} status={data.status} />
               <span>{t(lang, `category.${data.category}`)}</span>
@@ -50,7 +66,7 @@ const canOpen = data.url && data.status !== 'archived';
           {
             canOpen && (
               <a
-                class="btn btn-primary"
+                class:list={['btn', developing ? 'btn-ghost' : 'btn-primary']}
                 href={data.url}
                 target="_blank"
                 rel="noopener"
@@ -58,7 +74,7 @@ const canOpen = data.url && data.status !== 'archived';
                 data-project={work.slug}
                 data-placement="detail"
               >
-                {t(lang, 'work.open')} ↗
+                {t(lang, developing ? 'work.preview' : 'work.open')} ↗
                 <span class="visually-hidden">{t(lang, 'work.newTab')}</span>
               </a>
             )
@@ -81,11 +97,34 @@ const canOpen = data.url && data.status !== 'archived';
           }
         </div>
         <TranslationNotice lang={lang} translation={work.translation} />
+        <section class="summary" aria-labelledby="summary-title">
+          <h2 id="summary-title" class="eyebrow">{t(lang, 'work.summary')}</h2>
+          <dl>
+            <div>
+              <dt>{t(lang, 'work.summary.scope')}</dt>
+              <dd>{t(lang, 'work.summary.scopeValue')}</dd>
+            </div>
+            {
+              keyDecision && (
+                <div>
+                  <dt>{t(lang, 'work.summary.decision')}</dt>
+                  <dd>
+                    <a href="#decision-1">{keyDecision}</a>
+                  </dd>
+                </div>
+              )
+            }
+            <div>
+              <dt>{t(lang, 'work.summary.status')}</dt>
+              <dd>{statusText}</dd>
+            </div>
+          </dl>
+        </section>
       </div>
     </header>
 
     <div class="container">
-      <Gallery screenshots={data.screenshots} label={t(lang, 'work.screenshots')} />
+      <Gallery lang={lang} screenshots={data.screenshots} label={t(lang, 'work.screenshots')} />
       {
         data.metrics.length > 0 && (
           <div class="metrics-wrap">
@@ -93,8 +132,27 @@ const canOpen = data.url && data.status !== 'archived';
           </div>
         )
       }
-      <div class="prose body" lang={work.translation === 'missing' ? 'ja' : undefined}>
-        <Content />
+      <div class="layout">
+        <div class="prose body" lang={work.translation === 'missing' ? 'ja' : undefined}>
+          <Content />
+        </div>
+        {
+          toc.length > 1 && (
+            <nav class="toc" aria-labelledby="toc-title">
+              <p id="toc-title" class="eyebrow">{t(lang, 'work.toc')}</p>
+              <ol>
+                {toc.map((h) => (
+                  <li>
+                    <a href={`#${h.slug}`}>{h.text}</a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          )
+        }
+      </div>
+      <div class="closing">
+        <ContactCta lang={lang} context="work" />
       </div>
     </div>
   </article>
@@ -119,6 +177,28 @@ const canOpen = data.url && data.status !== 'archived';
   }
 </Base>
 
+<script>
+  // 目次：いま読んでいる見出しを強調する
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('.toc a')];
+  if (links.length > 0 && 'IntersectionObserver' in window) {
+    const byId = new Map(links.map((a) => [decodeURIComponent(a.hash.slice(1)), a]));
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          links.forEach((a) => a.removeAttribute('aria-current'));
+          byId.get(entry.target.id)?.setAttribute('aria-current', 'true');
+        }
+      },
+      { rootMargin: '0px 0px -70% 0px' },
+    );
+    byId.forEach((_, id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+  }
+</script>
+
 <style>
   .head {
     padding-block: 32px 28px;
@@ -129,8 +209,10 @@ const canOpen = data.url && data.status !== 'archived';
     );
   }
   .back {
-    display: inline-block;
-    margin-bottom: 24px;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-bottom: 12px;
     font-size: 0.9rem;
     color: var(--text-muted);
     text-decoration: none;
@@ -168,6 +250,91 @@ const canOpen = data.url && data.status !== 'archived';
   }
   .metrics-wrap {
     margin-top: 24px;
+  }
+  .subtitle {
+    margin-top: 2px;
+    color: var(--text-muted);
+  }
+  .summary {
+    margin-top: 8px;
+    padding: 18px 20px;
+    max-width: 52em;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--bg) 70%, transparent);
+  }
+  .summary dl {
+    display: grid;
+    gap: 8px;
+    margin: 8px 0 0;
+  }
+  .summary dl > div {
+    display: grid;
+    grid-template-columns: 9em minmax(0, 1fr);
+    gap: 4px 16px;
+  }
+  .summary dt {
+    font-weight: 700;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+  .summary dd {
+    margin: 0;
+  }
+  @media (max-width: 560px) {
+    .summary dl > div {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+    }
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 48px;
+  }
+  @media (min-width: 1040px) {
+    .layout {
+      grid-template-columns: minmax(0, 1fr) 240px;
+    }
+  }
+  .toc {
+    display: none;
+  }
+  @media (min-width: 1040px) {
+    .toc {
+      display: block;
+      position: sticky;
+      top: 96px;
+      align-self: start;
+      margin-top: 40px;
+      padding-left: 20px;
+      border-left: 1px solid var(--border);
+    }
+  }
+  .toc ol {
+    list-style: none;
+    margin: 10px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 2px;
+  }
+  .toc a {
+    display: block;
+    padding: 6px 0;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+  .toc a:hover,
+  .toc a[aria-current='true'] {
+    color: var(--brand);
+  }
+  .toc a[aria-current='true'] {
+    font-weight: 700;
+  }
+  .closing {
+    margin-top: clamp(48px, 7vw, 72px);
   }
   .body {
     margin-top: 16px;

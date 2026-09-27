@@ -2,9 +2,10 @@
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import WorkCard from '../components/WorkCard.astro';
+import ContactCta from '../components/ContactCta.astro';
 import { SITE } from '../site';
 import type { Lang } from '../i18n/ui';
-import { localePath, t } from '../i18n/utils';
+import { localePath, t, tf } from '../i18n/utils';
 import { getWorks } from '../lib/works';
 
 interface Props {
@@ -15,28 +16,72 @@ const { lang } = Astro.props;
 const works = await getWorks(lang);
 const featured = works.filter((w) => w.data.featured);
 const others = works.filter((w) => !w.data.featured);
+const counts = {
+  live: works.filter((w) => w.data.status === 'live').length,
+  developing: works.filter((w) => w.data.status === 'developing').length,
+};
+// ヒーローの右側に見せる代表作（公開中の作品を優先し、横長の画面を使う）
+const showcase = works.find((w) => w.data.status === 'live') ?? works[0];
+// カードの先頭の画面と重ならないよう、2枚目以降の横長の画面を優先する
+const landscape = showcase?.data.screenshots.filter((s) => s.src.width > s.src.height) ?? [];
+const showcaseShot = landscape[1] ?? landscape[0];
 ---
 
 <Base lang={lang}>
   <section class="hero">
     <div class="container hero-inner">
-      <div>
-        <p class="eyebrow">{SITE.role[lang]}</p>
-        <h1>{SITE.name[lang]}</h1>
+      <div class="hero-text">
+        <div class="who">
+          <Image
+            class="avatar"
+            src={SITE.photo}
+            alt={SITE.photoAlt[lang]}
+            widths={[72, 144]}
+            sizes="72px"
+            loading="eager"
+          />
+          <div>
+            <p class="eyebrow">{SITE.role[lang]}</p>
+            <h1>{SITE.name[lang]}</h1>
+          </div>
+        </div>
+        <p class="catch">{t(lang, 'home.catch')}</p>
         <p class="intro">{SITE.intro[lang]}</p>
+        <ul class="chips">
+          <li>{t(lang, 'home.chip.solo')}</li>
+          <li>{t(lang, 'home.chip.ai')}</li>
+          <li>{t(lang, 'home.chip.cost')}</li>
+          <li>{tf(lang, 'home.chip.status', counts)}</li>
+        </ul>
         <div class="cta">
           <a class="btn btn-primary" href="#projects">{t(lang, 'home.cta.works')}</a>
           <a class="btn btn-ghost" href={localePath(lang, '/contact/')}>{t(lang, 'home.cta.contact')}</a>
         </div>
       </div>
-      <Image
-        class="photo"
-        src={SITE.photo}
-        alt={SITE.photoAlt[lang]}
-        widths={[280, 560]}
-        sizes="(max-width: 800px) 50vw, 280px"
-        loading="eager"
-      />
+      {
+        showcase && showcaseShot && (
+          <a class="showcase" href={localePath(lang, `/projects/${showcase.slug}/`)}>
+            <span class="frame" aria-hidden="true">
+              <span class="dots">
+                <i />
+                <i />
+                <i />
+              </span>
+            </span>
+            <Image
+              src={showcaseShot.src}
+              alt={showcaseShot.alt}
+              widths={[480, 960]}
+              sizes="480px"
+              loading="eager"
+            />
+            <span class="caption">
+              <span class="muted">{t(lang, 'home.showcase')}</span>
+              <strong>{showcase.data.title} →</strong>
+            </span>
+          </a>
+        )
+      }
     </div>
   </section>
 
@@ -48,8 +93,8 @@ const others = works.filter((w) => !w.data.featured);
       <ul class="grid featured">
         {
           (featured.length > 0 ? featured : works).map((work, i) => (
-            <li>
-              <WorkCard lang={lang} work={work} variant="featured" eager={i < 2} />
+            <li class:list={{ lead: i === 0 }}>
+              <WorkCard lang={lang} work={work} variant="featured" wide={i === 0} eager={i < 1} />
             </li>
           ))
         }
@@ -71,6 +116,10 @@ const others = works.filter((w) => !w.data.featured);
           </>
         )
       }
+
+      <div class="closing">
+        <ContactCta lang={lang} />
+      </div>
     </div>
   </section>
 </Base>
@@ -84,43 +133,138 @@ const others = works.filter((w) => !w.data.featured);
   }
   .hero-inner {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 440px);
     align-items: center;
-    gap: 32px 56px;
+    gap: 40px 56px;
   }
-  .photo {
-    width: 280px;
-    height: auto;
-    aspect-ratio: 4 / 5;
+  .who {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .avatar {
+    flex: none;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
     object-fit: cover;
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    box-shadow: 0 12px 32px color-mix(in srgb, var(--brand) 14%, transparent);
-  }
-  @media (max-width: 800px) {
-    .hero-inner {
-      grid-template-columns: minmax(0, 1fr);
-    }
-    .photo {
-      width: min(220px, 55vw);
-    }
+    object-position: 50% 30%;
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 40%, transparent);
   }
   h1 {
-    margin-top: 8px;
-    font-size: clamp(2.4rem, 1.6rem + 3.6vw, 4rem);
+    margin-top: 2px;
+    font-size: clamp(2.2rem, 1.6rem + 2.6vw, 3.4rem);
     letter-spacing: -0.03em;
+    line-height: 1.15;
+  }
+  .catch {
+    margin-top: 24px;
+    font-family: var(--font-heading);
+    font-size: clamp(1.35rem, 1.1rem + 1.2vw, 2rem);
+    font-weight: 800;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    background: linear-gradient(90deg, var(--brand-strong), var(--brand));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
   .intro {
-    margin-top: 20px;
+    margin-top: 16px;
     max-width: 38em;
-    font-size: clamp(1.02rem, 0.95rem + 0.35vw, 1.2rem);
+    font-size: clamp(1rem, 0.95rem + 0.25vw, 1.1rem);
     color: var(--text-muted);
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    list-style: none;
+    margin: 20px 0 0;
+    padding: 0;
+  }
+  .chips li {
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--brand) 25%, var(--border));
+    background: color-mix(in srgb, var(--brand-soft) 60%, transparent);
+    color: var(--text);
+    font-size: 0.85rem;
+    font-weight: 600;
   }
   .cta {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
-    margin-top: 32px;
+    margin-top: 28px;
+  }
+  /* 代表作の画面（ブラウザの枠つき） */
+  .showcase {
+    display: block;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--bg);
+    overflow: hidden;
+    box-shadow:
+      0 24px 48px -12px color-mix(in srgb, var(--brand) 28%, transparent),
+      var(--shadow);
+    color: var(--text);
+    text-decoration: none;
+    transition: transform 0.2s;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .showcase {
+      transform: perspective(1200px) rotateY(-4deg) rotateX(2deg);
+    }
+    .showcase:hover {
+      transform: none;
+    }
+  }
+  .frame {
+    display: flex;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .dots {
+    display: flex;
+    gap: 6px;
+  }
+  .dots i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+  .showcase img {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    object-position: top;
+  }
+  .caption {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 0.9rem;
+  }
+  @media (max-width: 960px) {
+    .hero-inner {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .showcase {
+      display: none;
+    }
+  }
+  @media (max-width: 480px) {
+    .avatar {
+      width: 56px;
+      height: 56px;
+    }
   }
   .grid {
     display: grid;
@@ -132,6 +276,17 @@ const others = works.filter((w) => !w.data.featured);
   }
   .grid.featured {
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  }
+  @media (min-width: 820px) {
+    .grid.featured {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .grid.featured .lead {
+      grid-column: 1 / -1;
+    }
+  }
+  .closing {
+    margin-top: clamp(48px, 7vw, 80px);
   }
   .others-head {
     margin-top: 56px;

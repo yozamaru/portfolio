@@ -29,8 +29,10 @@
   --max: 1080px;
   --gutter: clamp(16px, 4vw, 32px);
 
+  /* 本文は端末のフォント。'Noto Sans JP' は見出し用に太字だけ読み込んでいるので、ここには入れない */
   --font-sans: system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN',
-    'Noto Sans JP', 'Yu Gothic UI', Meiryo, sans-serif;
+    'Noto Sans CJK JP', 'Yu Gothic UI', Meiryo, sans-serif;
+  --font-heading: 'Noto Sans JP', var(--font-sans);
   --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 }
 
@@ -115,6 +117,7 @@ a:hover {
 h1,
 h2,
 h3 {
+  font-family: var(--font-heading);
   line-height: 1.35;
   letter-spacing: -0.01em;
   margin: 0;

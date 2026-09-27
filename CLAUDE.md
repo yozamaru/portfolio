@@ -24,7 +24,7 @@ naomaru.app のポートフォリオサイト。企画は `docs/PLAN.md`、構�
 
 - 日本語（`ja.mdx`）が正。英語（`en.mdx`）は任意で、無ければ英語ページは日本語のまま表示される。
 - 翻訳は AI が担当する。**`ja.mdx` を変更したら、同じ作業の中で `en.mdx` も更新する。**
-- `en.mdx` に書くのは翻訳する項目だけ（`title`, `tagline`, `screenshotAlts`, `stack`, `decisions` と本文）。URL・状態・日付・画像などは `ja.mdx` の値が使われる。
+- `en.mdx` に書くのは翻訳する項目だけ（`title`, `subtitle`, `tagline`, `screenshotAlts`, `stack`, `decisions` と本文。`subtitle` は英語の名前だけでは中身が伝わらないときの短い補足）。URL・状態・日付・画像などは `ja.mdx` の値が使われる。
 - 英訳を更新したら `npm run translations:hash -- <slug> --write` で `sourceHash` をそろえる。
   そろっていないと、ビルド後の英語ページに「翻訳が古い」注記が出て、CI で警告が出る。
 - `npm run check:translations` で全作品の状態を確認できる。

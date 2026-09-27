@@ -4,6 +4,16 @@ export function t(lang: Lang, key: UiKey): string {
   return ui[lang][key];
 }
 
+/** {name} の形の差し込みを埋める（例：tf(lang, 'about.stack.count', { n: 2 })） */
+export function tf(lang: Lang, key: UiKey, vars: Record<string, string | number>): string {
+  return t(lang, key).replace(/\{(\w+)\}/g, (_, name: string) => String(vars[name] ?? `{${name}}`));
+}
+
+/** 「A|B|C」の形で持っている文言を配列にする */
+export function tl(lang: Lang, key: UiKey): string[] {
+  return t(lang, key).split('|');
+}
+
 /** 言語ごとのパス。日本語はルート、英語は /en/ 以下に置く。path は "/" から始め "/" で終える。 */
 export function localePath(lang: Lang, path: string): string {
   return lang === DEFAULT_LANG ? path : `/${lang}${path}`;
