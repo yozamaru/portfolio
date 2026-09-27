@@ -49,7 +49,15 @@ const canOpen = data.url && data.status !== 'archived';
         <div class="actions">
           {
             canOpen && (
-              <a class="btn btn-primary" href={data.url} target="_blank" rel="noopener">
+              <a
+                class="btn btn-primary"
+                href={data.url}
+                target="_blank"
+                rel="noopener"
+                data-track="service"
+                data-project={work.slug}
+                data-placement="detail"
+              >
                 {t(lang, 'work.open')} ↗
                 <span class="visually-hidden">{t(lang, 'work.newTab')}</span>
               </a>
@@ -57,7 +65,15 @@ const canOpen = data.url && data.status !== 'archived';
           }
           {
             data.repo && (
-              <a class="btn btn-ghost" href={data.repo} target="_blank" rel="noopener">
+              <a
+                class="btn btn-ghost"
+                href={data.repo}
+                target="_blank"
+                rel="noopener"
+                data-track="github"
+                data-project={work.slug}
+                data-placement="detail"
+              >
                 {t(lang, 'work.github')} ↗
                 <span class="visually-hidden">{t(lang, 'work.newTab')}</span>
               </a>

@@ -41,7 +41,15 @@ const titleId = `work-${work.slug}-title`;
   <div class="actions">
     {
       data.url && data.status !== 'archived' && (
-        <a class="btn btn-primary" href={data.url} target="_blank" rel="noopener">
+        <a
+          class="btn btn-primary"
+          href={data.url}
+          target="_blank"
+          rel="noopener"
+          data-track="service"
+          data-project={work.slug}
+          data-placement="card"
+        >
           {t(lang, 'work.open')}
           <span class="visually-hidden">: {data.title}{t(lang, 'work.newTab')}</span>
         </a>
@@ -53,7 +61,15 @@ const titleId = `work-${work.slug}-title`;
     </a>
     {
       data.repo && (
-        <a class="btn btn-ghost" href={data.repo} target="_blank" rel="noopener">
+        <a
+          class="btn btn-ghost"
+          href={data.repo}
+          target="_blank"
+          rel="noopener"
+          data-track="github"
+          data-project={work.slug}
+          data-placement="card"
+        >
           {t(lang, 'work.github')}
           <span class="visually-hidden">: {data.title}{t(lang, 'work.newTab')}</span>
         </a>

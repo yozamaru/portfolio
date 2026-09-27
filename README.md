@@ -14,7 +14,7 @@ https://naomaru.app
 | 配信 | Cloudflare Workers（静的アセット配信。`/api/*` だけ Worker が処理） |
 | 問い合わせ | Cloudflare Turnstile＋Workers → Resend |
 | OGP 画像 | ビルド時に satori と resvg で生成 |
-| アクセス解析 | Cloudflare Web Analytics |
+| アクセス解析 | Cloudflare Web Analytics（訪問者数）、Workers Analytics Engine（外部リンクのクリック数） |
 
 ```
 src/
@@ -47,7 +47,7 @@ npm run preview      # Worker ごとローカルで動かす（.dev.vars.example
 2. **Turnstile**：Cloudflare のダッシュボードでウィジェットを作り、ホスト名に `naomaru.app` を登録する。サイトキーとシークレットキーを控える。
 3. **Worker を作る**：Cloudflare のダッシュボードの「Workers & Pages」→「作成」→「Git リポジトリをインポート」で、このリポジトリを接続する。
    - ビルドコマンド：`npm run build`、デプロイコマンド：`npx wrangler deploy`
-   - ビルドの環境変数：`PUBLIC_TURNSTILE_SITE_KEY`（Turnstile のサイトキー）、`PUBLIC_CF_BEACON_TOKEN`（Web Analytics のトークン。任意）
+   - ビルドで使う公開値（`PUBLIC_TURNSTILE_SITE_KEY`、`PUBLIC_CF_BEACON_TOKEN`）は `.env.production` に書いてある
    - 以後は `main` への push で自動的にデプロイされる。
 4. **秘密情報を登録する**：
    ```sh
@@ -56,4 +56,16 @@ npm run preview      # Worker ごとローカルで動かす（.dev.vars.example
    npx wrangler secret put CONTACT_TO      # 問い合わせを受け取るメールアドレス
    ```
 5. **ドメイン**：`wrangler.jsonc` の `routes` で `naomaru.app` をカスタムドメインにしている。初回のデプロイで自動的に割り当てられる。
-6. **Web Analytics**：Cloudflare のダッシュボードで `naomaru.app` のサイトを追加し、トークンを `PUBLIC_CF_BEACON_TOKEN` に設定する。
+6. **Web Analytics**：Cloudflare のダッシュボードで `naomaru.app` のサイトを追加し、トークンを `.env.production` の `PUBLIC_CF_BEACON_TOKEN` に書く。
+
+## アクセスの確認（本人だけが見る）
+
+サイト上にカウンターなどは出さない。どちらも Cookie を使わず、IP アドレスなど個人を特定できる値は保存しない。
+
+- **訪問者数**：Cloudflare のダッシュボードの「Web Analytics」→ `naomaru.app`。ページごとの表示回数、流入元、国、端末が見られる。
+- **「サービスを開く」「GitHub」のクリック数**：ボタンが押されると、ブラウザが `/api/click` にプロジェクト名とリンクの種類だけを送り、Worker が Workers Analytics Engine（データセット `portfolio_clicks`）に記録する（`worker/click.ts`）。集計は次のコマンドで見る。
+  ```sh
+  npm run stats        # 直近30日（プロジェクト×種類の合計と、日ごとの「サービスを開く」）
+  npm run stats -- 7   # 直近7日
+  ```
+  環境変数 `CLOUDFLARE_ACCOUNT_ID` と `CLOUDFLARE_API_TOKEN` が必要で、トークンには「Account Analytics: Read」の権限が要る。データは90日で消える。

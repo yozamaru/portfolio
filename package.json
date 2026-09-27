@@ -11,6 +11,7 @@
     "check:links": "node scripts/check-links.ts",
     "check:translations": "node scripts/check-translations.ts",
     "translations:hash": "node scripts/translation-hash.ts",
+    "stats": "node scripts/click-stats.ts",
     "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {

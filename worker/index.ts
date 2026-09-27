@@ -1,6 +1,7 @@
+import { handleClick, type ClickEnv } from './click';
 import { handleContact, type ContactEnv } from './contact';
 
-interface Env extends ContactEnv {
+interface Env extends ContactEnv, ClickEnv {
   ASSETS: Fetcher;
 }
 
@@ -13,6 +14,9 @@ export default {
     const url = new URL(request.url);
     if (url.pathname === '/api/contact') {
       return handleContact(request, env);
+    }
+    if (url.pathname === '/api/click') {
+      return handleClick(request, env);
     }
     if (url.pathname.startsWith('/api/')) {
       return new Response('Not Found', { status: 404 });

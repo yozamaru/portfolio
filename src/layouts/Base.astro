@@ -82,6 +82,16 @@ const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN;
         document.documentElement.dataset.theme = theme;
       })();
     </script>
+    {/* data-track の付いた外部リンクが押されたら、どのリンクかだけを /api/click に送る（worker/click.ts） */}
+    <script is:inline define:vars={{ lang }}>
+      document.addEventListener('click', (event) => {
+        const link = event.target instanceof Element && event.target.closest('a[data-track]');
+        if (!link || !navigator.sendBeacon) return;
+        const { track, project, placement } = link.dataset;
+        const body = JSON.stringify({ project, kind: track, placement, lang });
+        navigator.sendBeacon('/api/click', new Blob([body], { type: 'application/json' }));
+      });
+    </script>
     {
       beaconToken && (
         <script

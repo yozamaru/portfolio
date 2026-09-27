@@ -13,6 +13,8 @@
   },
   "routes": [{ "pattern": "naomaru.app", "custom_domain": true }],
   "observability": { "enabled": true },
+  // 外部リンクのクリック数（worker/click.ts）。集計は npm run stats
+  "analytics_engine_datasets": [{ "binding": "CLICKS", "dataset": "portfolio_clicks" }],
   // 秘密情報は wrangler secret put で登録する（README 参照）:
   //   TURNSTILE_SECRET_KEY, RESEND_API_KEY
   "vars": {
