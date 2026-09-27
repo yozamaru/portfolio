@@ -90,9 +90,23 @@ const nav = [
     position: sticky;
     top: 0;
     z-index: 50;
-    background: color-mix(in srgb, var(--bg) 88%, transparent);
-    backdrop-filter: saturate(160%) blur(10px);
-    border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--bg) 60%, transparent);
+    backdrop-filter: saturate(160%) blur(12px);
+    border-bottom: 1px solid transparent;
+    transition:
+      background-color 0.3s,
+      border-color 0.3s,
+      box-shadow 0.3s;
+  }
+  /* スクロールしたら、すりガラスの帯にする（motion.ts が data-scrolled を付ける） */
+  :global(html[data-scrolled]) .header {
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    border-bottom-color: var(--border);
+    box-shadow: 0 6px 24px -12px rgb(14 22 48 / 0.18);
+  }
+  /* JavaScript が無いときは、最初から帯を見せる */
+  :global(html:not(.js)) .header {
+    border-bottom-color: var(--border);
   }
   .inner {
     display: flex;

@@ -28,6 +28,7 @@ const developing = data.status === 'developing';
 
 <article
   class:list={['card', variant, { wide }]}
+  data-spotlight
   aria-labelledby={titleId}
   style={data.accentColor ? `--work-accent:${data.accentColor}` : undefined}
 >
@@ -118,7 +119,27 @@ const developing = data.status === 'developing';
   }
   .card:hover {
     border-color: color-mix(in srgb, var(--work-accent) 60%, var(--border));
-    box-shadow: var(--shadow);
+    box-shadow:
+      0 18px 40px -18px color-mix(in srgb, var(--work-accent) 45%, transparent),
+      var(--shadow);
+  }
+  /* カーソルの位置に光を当てる（motion.ts が --mx / --my を入れる） */
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: radial-gradient(
+      420px circle at var(--mx, 50%) var(--my, 0%),
+      color-mix(in srgb, var(--work-accent) 14%, transparent),
+      transparent 60%
+    );
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .card:hover::before {
+    opacity: 1;
   }
   @media (prefers-reduced-motion: no-preference) {
     .card:hover {

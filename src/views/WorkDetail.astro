@@ -43,6 +43,7 @@ const statusText = [
   description={data.tagline}
   ogImage={`/og/${lang}/projects/${work.slug}.png`}
   alternate={work.translation !== 'missing'}
+  readingProgress
 >
   <article style={data.accentColor ? `--work-accent:${data.accentColor}` : undefined}>
     <header class="head">
@@ -97,7 +98,7 @@ const statusText = [
           }
         </div>
         <TranslationNotice lang={lang} translation={work.translation} />
-        <section class="summary" aria-labelledby="summary-title">
+        <section class="summary" aria-labelledby="summary-title" data-reveal style="--d: 0.1s">
           <h2 id="summary-title" class="eyebrow">{t(lang, 'work.summary')}</h2>
           <dl>
             <div>
@@ -124,7 +125,9 @@ const statusText = [
     </header>
 
     <div class="container">
+      <div data-reveal style="--d: 0.15s">
       <Gallery lang={lang} screenshots={data.screenshots} label={t(lang, 'work.screenshots')} />
+      </div>
       {
         data.metrics.length > 0 && (
           <div class="metrics-wrap">
@@ -151,7 +154,7 @@ const statusText = [
           )
         }
       </div>
-      <div class="closing">
+      <div class="closing" data-reveal>
         <ContactCta lang={lang} context="work" />
       </div>
     </div>

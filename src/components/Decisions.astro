@@ -9,7 +9,7 @@ const { lang } = work;
 <ol class="decisions">
   {
     work.data.decisions.map((d, i) => (
-      <li class="decision" id={`decision-${i + 1}`}>
+      <li class="decision" id={`decision-${i + 1}`} data-reveal style={`--d: ${Math.min(i, 3) * 0.06}s`}>
         <h3>
           <span class="num" aria-hidden="true">
             {String(i + 1).padStart(2, '0')}

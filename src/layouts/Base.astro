@@ -19,6 +19,8 @@ interface Props {
   alternate?: boolean;
   /** 言語切り替えリンクの行き先（言語の接頭辞を除いたパス）。省略時は同じページの別言語版 */
   langSwitchPath?: string;
+  /** 読んだ割合を上端の細い線で示す（長いページ用） */
+  readingProgress?: boolean;
 }
 
 const {
@@ -28,6 +30,7 @@ const {
   ogImage,
   alternate = true,
   langSwitchPath,
+  readingProgress = false,
 } = Astro.props;
 const siteName = SITE.name[lang];
 const fullTitle = title ? `${title} | ${siteName}` : `${siteName} — ${SITE.role[lang]}`;
@@ -83,6 +86,8 @@ const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN;
           theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         }
         document.documentElement.dataset.theme = theme;
+        // JavaScript が動くときだけ、表示の演出（motion.ts）を有効にする
+        document.documentElement.classList.add('js');
       })();
     </script>
     {/* data-track の付いた外部リンクが押されたら、どのリンクかだけを /api/click に送る（worker/click.ts） */}
@@ -107,12 +112,16 @@ const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN;
     }
   </head>
   <body>
+    {readingProgress && <div class="reading-progress" aria-hidden="true"></div>}
     <a class="skip-link" href="#main">{t(lang, 'nav.skip')}</a>
     <Header lang={lang} langSwitchPath={langSwitchPath} />
     <main id="main">
       <slot />
     </main>
     <Footer lang={lang} />
+    <script>
+      import '../scripts/motion';
+    </script>
   </body>
 </html>
 

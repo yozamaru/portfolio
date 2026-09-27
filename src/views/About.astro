@@ -59,7 +59,7 @@ const principles = {
   <section class="section">
     <div class="container">
       <h1>{t(lang, 'about.title')}</h1>
-      <div class="profile">
+      <div class="profile" data-reveal>
         <Image
           class="photo"
           src={SITE.photo}
@@ -77,8 +77,8 @@ const principles = {
 
       <ul class="principles">
         {
-          principles[lang].map((p) => (
-            <li>
+          principles[lang].map((p, i) => (
+            <li data-reveal style={`--d: ${i * 0.08}s`}>
               <h2>{p.title}</h2>
               <p>{p.body}</p>
             </li>
@@ -86,7 +86,7 @@ const principles = {
         }
       </ul>
 
-      <div class="facts">
+      <div class="facts" data-reveal>
         <section aria-labelledby="scope-title">
           <h2 id="scope-title">{t(lang, 'about.scope')}</h2>
           <ol class="steps">
@@ -117,8 +117,8 @@ const principles = {
       <p class="muted note">{t(lang, 'about.stackNote')}</p>
       <div class="stack-groups">
         {
-          stack.map((group) => (
-            <section class="stack-group" aria-labelledby={`stack-${group.category}`}>
+          stack.map((group, gi) => (
+            <section class="stack-group" aria-labelledby={`stack-${group.category}`} data-reveal style={`--d: ${gi * 0.06}s`}>
               <h3 id={`stack-${group.category}`}>{t(lang, `stackcat.${group.category}`)}</h3>
               <ul class="chips">
                 {group.items.map((item) => (
