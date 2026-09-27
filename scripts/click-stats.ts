@@ -42,7 +42,8 @@ async function query<T>(sql: string): Promise<T[]> {
 }
 
 // _sample_interval は、Analytics Engine が間引いて保存したときの重み。足し合わせると実際の件数になる
-const where = `timestamp > NOW() - INTERVAL '${days}' DAY`;
+// deploy-check は公開時の動作確認で送ったテスト用の記録なので数えない
+const where = `timestamp > NOW() - INTERVAL '${days}' DAY AND blob1 != 'deploy-check'`;
 
 const totals = await query<{ project: string; kind: string; clicks: string }>(`
   SELECT blob1 AS project, blob2 AS kind, SUM(_sample_interval) AS clicks
