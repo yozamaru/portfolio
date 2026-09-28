@@ -1,4 +1,5 @@
 ---
+/* 案2「ターミナル」：コマンドが自動でタイプされ、自己紹介が出てくる */
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import WorkCard from '../components/WorkCard.astro';
@@ -6,7 +7,7 @@ import ContactCta from '../components/ContactCta.astro';
 import { SITE } from '../site';
 import type { Lang } from '../i18n/ui';
 import { localePath, t, tf } from '../i18n/utils';
-import { getWorks } from '../lib/works';
+import { aggregateStack, getWorks } from '../lib/works';
 
 interface Props {
   lang: Lang;
@@ -20,94 +21,91 @@ const counts = {
   live: works.filter((w) => w.data.status === 'live').length,
   developing: works.filter((w) => w.data.status === 'developing').length,
 };
-// ヒーローの右側に見せる代表作（公開中の作品を優先し、横長の画面を使う）
-const showcase = works.find((w) => w.data.status === 'live') ?? works[0];
-// カードの先頭の画面と重ならないよう、2枚目以降の横長の画面を優先する
-const landscape = showcase?.data.screenshots.filter((s) => s.src.width > s.src.height) ?? [];
-const showcaseShot = landscape[1] ?? landscape[0];
+// ターミナルに打つ内容（コマンドと、その出力）
+const ja = lang === 'ja';
+// neofetch 風のプロフィール（丸い写真の横に並べる）
+const topStack = aggregateStack(works)
+  .flatMap((g) => g.items)
+  .sort((a, b) => b.works.length - a.works.length)
+  .slice(0, 4)
+  .map((i) => i.name)
+  .join(' / ');
+const profile: [string, string][] = [
+  ['Role', `${SITE.role[lang]}${ja ? '（5年）' : ' (5 yrs)'}`],
+  ['Focus', ja ? '企画 → 設計 → 開発 → 公開 → 運用' : 'Plan → Design → Build → Ship → Run'],
+  ['Stack', topStack],
+  ['Status', tf(lang, 'home.chip.status', counts)],
+  ['Hobby', ja ? 'バスケットボール 🏀' : 'Basketball 🏀'],
+];
+const lines: { cmd: string; out: string[]; fetch?: boolean }[] = [
+  { cmd: 'whoami', out: [`${SITE.name[lang]} — ${SITE.role[lang]}`] },
+  { cmd: 'neofetch', out: [], fetch: true },
+  { cmd: 'cat mission.txt', out: [t(lang, 'home.catch')] },
+  { cmd: 'ls projects/', out: [works.map((w) => w.slug).join('   ')] },
+];
 ---
 
 <Base lang={lang}>
   <section class="hero">
-    <div class="hero-bg" aria-hidden="true">
-      <span class="blob b1"></span>
-      <span class="blob b2"></span>
-      <span class="blob b3"></span>
-      <span class="grid-lines"></span>
-    </div>
-    <div class="container hero-inner">
-      <div class="hero-text">
-        <div class="who" data-reveal style="--d: 0s">
-          <Image
-            class="avatar"
-            src={SITE.photo}
-            alt={SITE.photoAlt[lang]}
-            widths={[72, 144]}
-            sizes="72px"
-            loading="eager"
-          />
-          <div>
-            <p class="eyebrow">{SITE.role[lang]}</p>
-            <h1>{SITE.name[lang]}</h1>
-          </div>
+    <div class="container">
+      {/* 読み上げと検索用の本文。見た目はターミナルが担う */}
+      <h1 class="visually-hidden">{SITE.name[lang]} — {SITE.role[lang]}</h1>
+      <p class="visually-hidden">{t(lang, 'home.catch')}</p>
+
+      <div class="term" aria-hidden="true" data-reveal="zoom">
+        <div class="bar">
+          <span class="dots"><i></i><i></i><i></i></span>
+          <span class="title">naohiro@naomaru.app: ~</span>
         </div>
-        <p class="catch" data-reveal style="--d: 0.12s">{t(lang, 'home.catch')}</p>
-        <p class="intro" data-reveal style="--d: 0.24s">{SITE.intro[lang]}</p>
-        <ul class="chips">
+        <div class="screen">
           {
-            [
-              t(lang, 'home.chip.solo'),
-              t(lang, 'home.chip.ai'),
-              t(lang, 'home.chip.cost'),
-              tf(lang, 'home.chip.status', counts),
-            ].map((chip, i) => (
-              <li data-reveal="zoom" style={`--d: ${0.36 + i * 0.07}s`}>
-                {chip}
-              </li>
+            lines.map((l) => (
+              <div class="block">
+                <p class="cmd">
+                  <span class="prompt">~ $</span> <span data-type>{l.cmd}</span>
+                </p>
+                {l.out.map((o) => (
+                  <p class="out" data-out>
+                    {o}
+                  </p>
+                ))}
+                {l.fetch && (
+                  <div class="out fetch">
+                    <Image class="face" src={SITE.photo} alt="" widths={[112, 224]} sizes="112px" loading="eager" />
+                    <dl>
+                      <div class="host">
+                        <dt>naohiro</dt>
+                        <dd>@naomaru.app</dd>
+                      </div>
+                      {profile.map(([k, v]) => (
+                        <div>
+                          <dt>{k}:</dt>
+                          <dd>{v}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                )}
+              </div>
             ))
           }
-        </ul>
-        <div class="cta" data-reveal style="--d: 0.66s">
-          <a class="btn btn-primary" href="#projects">{t(lang, 'home.cta.works')}</a>
-          <a class="btn btn-ghost" href={localePath(lang, '/contact/')}>{t(lang, 'home.cta.contact')}</a>
+          <p class="cmd">
+            <span class="prompt">~ $</span> <span class="caret"></span>
+          </p>
         </div>
       </div>
-      {
-        showcase && showcaseShot && (
-          <a
-            class="showcase"
-            href={localePath(lang, `/projects/${showcase.slug}/`)}
-            data-reveal="right"
-            data-tilt="10"
-            style="--d: 0.3s"
-          >
-            <span class="frame" aria-hidden="true">
-              <span class="dots">
-                <i />
-                <i />
-                <i />
-              </span>
-            </span>
-            <Image
-              src={showcaseShot.src}
-              alt={showcaseShot.alt}
-              widths={[480, 960]}
-              sizes="480px"
-              loading="eager"
-            />
-            <span class="caption">
-              <span class="muted">{t(lang, 'home.showcase')}</span>
-              <strong>{showcase.data.title} →</strong>
-            </span>
-          </a>
-        )
-      }
+
+      <p class="intro" data-reveal style="--d: 0.2s">{SITE.intro[lang]}</p>
+      <div class="cta" data-reveal style="--d: 0.3s">
+        <a class="btn btn-primary" href="#projects">{t(lang, 'home.cta.works')}</a>
+        <a class="btn btn-ghost" href={localePath(lang, '/contact/')}>{t(lang, 'home.cta.contact')}</a>
+      </div>
     </div>
   </section>
 
   <section id="projects" class="section" aria-labelledby="featured-title">
     <div class="container">
-      <div class="section-head" data-reveal>
+      <div class="section-head code" data-reveal>
         <h2 id="featured-title">{featured.length > 0 ? t(lang, 'home.featured') : t(lang, 'home.all')}</h2>
       </div>
       <ul class="grid featured">
@@ -119,16 +117,15 @@ const showcaseShot = landscape[1] ?? landscape[0];
           ))
         }
       </ul>
-
       {
         featured.length > 0 && others.length > 0 && (
           <>
-            <div class="section-head others-head">
+            <div class="section-head code others-head" data-reveal>
               <h2>{t(lang, 'home.all')}</h2>
             </div>
             <ul class="grid">
               {others.map((work) => (
-                <li>
+                <li data-reveal>
                   <WorkCard lang={lang} work={work} />
                 </li>
               ))}
@@ -136,7 +133,6 @@ const showcaseShot = landscape[1] ?? landscape[0];
           </>
         )
       }
-
       <div class="closing" data-reveal>
         <ContactCta lang={lang} />
       </div>
@@ -144,231 +140,272 @@ const showcaseShot = landscape[1] ?? landscape[0];
   </section>
 </Base>
 
+<script>
+  // コマンドも応答も1文字ずつ打つ。「視差効果を減らす」ときは最初から全部見せる
+  const screen = document.querySelector<HTMLElement>('.term .screen');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (screen && !reduce) {
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    const blocks = [...screen.querySelectorAll<HTMLElement>('.block')];
+    const caretLine = screen.lastElementChild as HTMLElement;
+
+    // 応答の中の文字（テキストノード）を、表示順に集めて空にしておく
+    const collect = (root: Element) => {
+      const nodes: { node: Text; text: string }[] = [];
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+        const text = n.nodeValue ?? '';
+        if (!text.trim()) continue;
+        nodes.push({ node: n as Text, text });
+        n.nodeValue = '';
+      }
+      return nodes;
+    };
+    const plan = blocks.map((block) => {
+      const cmd = block.querySelector<HTMLElement>('[data-type]')!;
+      const cmdText = cmd.textContent ?? '';
+      cmd.textContent = '';
+      const outs = [...block.querySelectorAll<HTMLElement>('.out')].map(collect);
+      block.hidden = true;
+      return { block, cmd, cmdText, outs: outs.flat() };
+    });
+    caretLine.hidden = true;
+
+    // 1文字ずつ打つ。打っている要素にカーソルを付ける
+    const type = async (node: Text, text: string, min: number, jitter: number) => {
+      const el = node.parentElement!;
+      el.classList.add('cursor');
+      for (const ch of text) {
+        node.nodeValue += ch;
+        await sleep(min + Math.random() * jitter);
+      }
+      el.classList.remove('cursor');
+    };
+
+    (async () => {
+      await sleep(500);
+      for (const { block, cmd, cmdText, outs } of plan) {
+        block.hidden = false;
+        await type(cmd.firstChild as Text ?? cmd.appendChild(document.createTextNode('')), cmdText, 45, 60);
+        await sleep(220);
+        block.classList.add('responding');
+        await sleep(block.querySelector('.fetch') ? 350 : 60);
+        for (const { node, text } of outs) {
+          await type(node, text, 14, 22);
+          await sleep(40);
+        }
+        block.classList.add('done');
+        await sleep(300);
+      }
+      caretLine.hidden = false;
+    })();
+  } else if (screen) {
+    screen.querySelectorAll('.block').forEach((b) => b.classList.add('responding', 'done'));
+  }
+</script>
+
 <style>
   .hero {
-    position: relative;
-    overflow: hidden;
-    isolation: isolate;
-    padding-block: clamp(56px, 10vw, 120px) clamp(24px, 4vw, 40px);
+    padding-block: clamp(40px, 8vw, 96px) clamp(24px, 4vw, 40px);
     background:
-      radial-gradient(60% 80% at 100% 0%, color-mix(in srgb, var(--brand) 12%, transparent), transparent 70%),
-      radial-gradient(40% 60% at 85% 10%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%);
+      radial-gradient(60% 60% at 50% 0%, color-mix(in srgb, #22c55e 10%, transparent), transparent 70%),
+      var(--bg);
   }
-  /* 背景：ゆっくり動くオーロラと、うっすらした方眼 */
-  .hero-bg {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-  }
-  .blob {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(60px);
-    opacity: 0.55;
-    animation: drift 18s ease-in-out infinite alternate;
-  }
-  .b1 {
-    width: 520px;
-    height: 520px;
-    top: -180px;
-    right: -120px;
-    background: color-mix(in srgb, var(--brand) 55%, transparent);
-  }
-  .b2 {
-    width: 380px;
-    height: 380px;
-    top: 120px;
-    right: 22%;
-    background: color-mix(in srgb, #22c3ee 45%, transparent);
-    animation-duration: 22s;
-    animation-delay: -6s;
-  }
-  .b3 {
-    width: 300px;
-    height: 300px;
-    bottom: -140px;
-    left: -80px;
-    background: color-mix(in srgb, var(--accent) 35%, transparent);
-    animation-duration: 26s;
-    animation-delay: -12s;
-  }
-  :global(html[data-theme='dark']) .blob {
-    opacity: 0.35;
-  }
-  @keyframes drift {
-    0% {
-      transform: translate(0, 0) scale(1);
-    }
-    50% {
-      transform: translate(-40px, 30px) scale(1.08);
-    }
-    100% {
-      transform: translate(30px, -20px) scale(0.95);
-    }
-  }
-  .grid-lines {
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(color-mix(in srgb, var(--text) 6%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in srgb, var(--text) 6%, transparent) 1px, transparent 1px);
-    background-size: 44px 44px;
-    mask-image: radial-gradient(70% 60% at 70% 30%, #000, transparent 75%);
-  }
-  .hero-inner {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 440px);
-    align-items: center;
-    gap: 40px 56px;
-  }
-  .who {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-  }
-  .avatar {
-    flex: none;
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
-    object-fit: cover;
-    object-position: 50% 30%;
-    border: 2px solid var(--bg);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 40%, transparent);
-  }
-  h1 {
-    margin-top: 2px;
-    font-size: clamp(2.2rem, 1.6rem + 2.6vw, 3.4rem);
-    letter-spacing: -0.03em;
-    line-height: 1.15;
-  }
-  .catch {
-    margin-top: 24px;
-    font-family: var(--font-heading);
-    font-size: clamp(1.35rem, 1.1rem + 1.2vw, 2rem);
-    font-weight: 800;
-    line-height: 1.4;
-    letter-spacing: -0.01em;
-    text-wrap: balance;
-    background: linear-gradient(90deg, var(--brand-strong), var(--brand), #22c3ee, var(--brand-strong));
-    background-size: 300% 100%;
-    animation: shimmer 8s ease-in-out infinite;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  @keyframes shimmer {
-    0%,
-    100% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-  }
-  .intro {
-    margin-top: 16px;
-    max-width: 38em;
-    font-size: clamp(1rem, 0.95rem + 0.25vw, 1.1rem);
-    color: var(--text-muted);
-  }
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    list-style: none;
-    margin: 20px 0 0;
-    padding: 0;
-  }
-  .chips li {
-    padding: 4px 12px;
-    border-radius: 999px;
-    border: 1px solid color-mix(in srgb, var(--brand) 25%, var(--border));
-    background: color-mix(in srgb, var(--brand-soft) 60%, transparent);
-    color: var(--text);
-    font-size: 0.85rem;
-    font-weight: 600;
-  }
-  .cta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 28px;
-  }
-  /* 代表作の画面（ブラウザの枠つき） */
-  .showcase {
-    display: block;
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    background: var(--bg);
+  .term {
+    max-width: 860px;
+    margin-inline: auto;
+    border-radius: 14px;
     overflow: hidden;
+    background: #0a0f1a;
+    border: 1px solid #1f2a3d;
     box-shadow:
-      0 24px 48px -12px color-mix(in srgb, var(--brand) 28%, transparent),
-      var(--shadow);
-    color: var(--text);
-    text-decoration: none;
-    transition: transform 0.2s;
+      0 30px 60px -20px rgb(0 0 0 / 0.45),
+      0 0 0 1px rgb(34 197 94 / 0.08),
+      0 0 60px -10px rgb(34 197 94 / 0.25);
   }
-  /* カーソルに合わせて傾く（motion.ts が --rx / --ry を入れる）。表示の演出が終わってから効かせる */
-  :global(html.js) .showcase.is-in {
-    transform: perspective(1200px) rotateX(var(--rx, 2deg)) rotateY(var(--ry, -6deg));
-    transition: transform 0.25s ease-out;
-  }
-  .frame {
+  .bar {
     display: flex;
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #111827;
+    border-bottom: 1px solid #1f2a3d;
   }
   .dots {
     display: flex;
     gap: 6px;
   }
   .dots i {
-    width: 10px;
-    height: 10px;
+    width: 11px;
+    height: 11px;
     border-radius: 50%;
-    background: var(--border);
+    background: #ef4444;
   }
-  .showcase img {
-    width: 100%;
-    aspect-ratio: 16 / 10;
-    object-fit: cover;
-    object-position: top;
+  .dots i:nth-child(2) {
+    background: #f59e0b;
   }
-  .caption {
+  .dots i:nth-child(3) {
+    background: #22c55e;
+  }
+  .title {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: #94a3b8;
+  }
+  .screen {
+    position: relative;
+    padding: 20px clamp(16px, 3vw, 28px) 24px;
+    font-family: var(--font-mono);
+    font-size: clamp(0.85rem, 0.8rem + 0.4vw, 1.05rem);
+    line-height: 1.75;
+    color: #e2e8f0;
+  }
+  /* うっすら走査線 */
+  .screen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgb(255 255 255 / 0.025) 0 1px, transparent 1px 3px);
+  }
+  .cmd {
+    color: #e2e8f0;
+  }
+  .prompt {
+    color: #22c55e;
+    font-weight: 700;
+  }
+  .out {
+    color: #93c5fd;
+    opacity: 0;
+    transform: translateY(4px);
+    transition:
+      opacity 0.35s,
+      transform 0.35s;
+    word-break: break-all;
+  }
+  .block + .block,
+  .block + .cmd {
+    margin-top: 10px;
+  }
+  .block:nth-child(3) .out {
+    color: #fde68a;
+    font-weight: 700;
+    font-size: 1.1em;
+  }
+  /* neofetch：丸い写真と、項目の一覧 */
+  .fetch {
     display: flex;
-    justify-content: space-between;
+    align-items: center;
+    gap: clamp(14px, 3vw, 28px);
+    margin-top: 8px;
+    color: #e2e8f0;
+  }
+  .face {
+    flex: none;
+    width: clamp(76px, 18vw, 112px);
+    height: clamp(76px, 18vw, 112px);
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: 50% 30%;
+    border: 2px solid #22c55e;
+    box-shadow:
+      0 0 0 4px rgb(34 197 94 / 0.15),
+      0 0 24px rgb(34 197 94 / 0.35);
+  }
+  .fetch dl {
+    margin: 0;
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+    font-size: 0.92em;
+  }
+  .fetch dl > div {
+    display: flex;
+    gap: 8px;
+  }
+  .fetch dt {
+    flex: none;
+    width: 5.4em;
+    white-space: nowrap;
+    color: #22c55e;
+    font-weight: 700;
+  }
+  .fetch dd {
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  /* スマホでは写真を上、項目を下に並べる */
+  @media (max-width: 520px) {
+    .fetch {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+  .fetch .host dt {
+    width: auto;
+    color: #93c5fd;
+  }
+  .fetch .host dd {
+    color: #93c5fd;
+  }
+  .responding .out {
+    opacity: 1;
+    transform: none;
+  }
+  .face {
+    opacity: 0;
+    transform: scale(0.6);
+    transition:
+      opacity 0.4s,
+      transform 0.5s cubic-bezier(0.2, 1.4, 0.4, 1);
+  }
+  .responding .face {
+    opacity: 1;
+    transform: none;
+  }
+  .cursor::after,
+  .caret {
+    content: '';
+    display: inline-block;
+    width: 0.6em;
+    height: 1.15em;
+    vertical-align: -0.2em;
+    background: #22c55e;
+    animation: blink 1s steps(1) infinite;
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+  .intro {
+    max-width: 40em;
+    margin: 32px auto 0;
+    text-align: center;
+    color: var(--text-muted);
+  }
+  .cta {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
     gap: 12px;
-    padding: 12px 16px;
-    border-top: 1px solid var(--border);
-    font-size: 0.9rem;
+    margin-top: 24px;
   }
-  @media (max-width: 960px) {
-    .hero-inner {
-      grid-template-columns: minmax(0, 1fr);
-    }
-    .showcase {
-      display: none;
-    }
-  }
-  @media (max-width: 480px) {
-    .avatar {
-      width: 56px;
-      height: 56px;
-    }
+  /* 見出しをコードのコメント風に */
+  .code h2::before {
+    content: '// ';
+    font-family: var(--font-mono);
+    color: #22c55e;
   }
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
     gap: 20px;
     list-style: none;
     margin: 0;
     padding: 0;
-  }
-  .grid.featured {
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
   }
   @media (min-width: 820px) {
     .grid.featured {
@@ -378,10 +415,10 @@ const showcaseShot = landscape[1] ?? landscape[0];
       grid-column: 1 / -1;
     }
   }
-  .closing {
-    margin-top: clamp(48px, 7vw, 80px);
-  }
   .others-head {
     margin-top: 56px;
+  }
+  .closing {
+    margin-top: clamp(48px, 7vw, 80px);
   }
 </style>
