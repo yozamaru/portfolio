@@ -24,13 +24,19 @@ const counts = {
 // ターミナルに打つ内容（コマンドと、その出力）
 const ja = lang === 'ja';
 // neofetch 風のプロフィール（丸い写真の横に並べる）
-const topStack = aggregateStack(works)
-  .flatMap((g) => g.items)
-  .sort((a, b) => b.works.length - a.works.length)
-  .slice(0, 4)
-  .map((i) => i.name)
-  .join(' / ');
-const profile: [string, string][] = [
+// プロジェクトでよく使う技術に、仕事などで使ってきた技術を足す
+const EXTRA_STACK = ['Java', 'React', 'Flutter'];
+const topStack = [
+  ...new Set([
+    ...aggregateStack(works)
+      .flatMap((g) => g.items)
+      .sort((a, b) => b.works.length - a.works.length)
+      .slice(0, 4)
+      .map((i) => i.name),
+    ...EXTRA_STACK,
+  ]),
+];
+const profile: [string, string | string[]][] = [
   ['Role', `${SITE.role[lang]}${ja ? '（5年）' : ' (5 yrs)'}`],
   ['Focus', ja ? '企画 → 設計 → 開発 → 公開 → 運用' : 'Plan → Design → Build → Ship → Run'],
   ['Stack', topStack],
@@ -80,7 +86,16 @@ const lines: { cmd: string; out: string[]; fetch?: boolean }[] = [
                       {profile.map(([k, v]) => (
                         <div>
                           <dt>{k}:</dt>
-                          <dd>{v}</dd>
+                          <dd>
+                            {Array.isArray(v)
+                              ? v.map((item, i) => (
+                                  <>
+                                    {i > 0 && ' / '}
+                                    <span class="nowrap">{item}</span>
+                                  </>
+                                ))
+                              : v}
+                          </dd>
                         </div>
                       ))}
                     </dl>
@@ -330,6 +345,10 @@ const lines: { cmd: string; out: string[]; fetch?: boolean }[] = [
     white-space: nowrap;
     color: #22c55e;
     font-weight: 700;
+  }
+  /* 技術名の途中では改行しない（区切りの「 / 」で折り返す） */
+  .nowrap {
+    white-space: nowrap;
   }
   .fetch dd {
     margin: 0;
