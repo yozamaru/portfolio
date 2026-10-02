@@ -100,7 +100,7 @@ frontmatter は Zod のスキーマで検証し、必須項目が欠けていれ
 | 項目 | 内容 |
 |---|---|
 | URL | https://himotoku-ai.naomaru.app |
-| 一言説明 | 中学数学しか分からない人が、AIの仕組みを数式とPythonのコードの両方から理解し、自分でAIモデルを作れるようになる学習サービス。問題を解いたときの判定は改ざんできない仕組みで、コードはブラウザの中で実行する |
+| 一言説明 | 中学までの数学を出発点に、AIの仕組みを数式とPythonのコードの両方から理解し、自分でAIモデルを作れるようになる学習サービス。問題を解いたときの判定は改ざんできない仕組みで、コードはブラウザの中で実行する |
 | 種類 | Webアプリ（学習サービス） |
 | 状態 | 公開中（誰でも利用可能）。リリース日は未確認 |
 | 技術 | Next.js 16（静的書き出し）、TypeScript、Tailwind CSS、Pyodide、Supabase（PostgreSQL・認証・行単位のアクセス制御）、Cloudflare Workers、Resend、GitHub Actions、Vitest、Playwright |
