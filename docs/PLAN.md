@@ -108,7 +108,7 @@ frontmatter は Zod のスキーマで検証し、必須項目が欠けていれ
 | 数字 | 載せない（本人の判断） |
 | 注意 | Claude APIなど外部の有料AIは使っていないので載せない。利用者数は載せない |
 
-### B.PREDICT（仮称、`bpredict`）
+### B.PREDICT（`bpredict`）
 
 | 項目 | 内容 |
 |---|---|
@@ -119,7 +119,7 @@ frontmatter は Zod のスキーマで検証し、必須項目が欠けていれ
 | 技術 | Next.js 16（静的出力）、Cloudflare Pages、Cloudflare Workers（Hono）、D1、Python 3.12、LightGBM、GitHub Actions |
 | GitHub | 公開（https://github.com/yozamaru/bpredict） |
 | 数字 | 載せない（本人の判断） |
-| 注意 | 名前は仮称（商標調査を経て確定） |
+| 注意 | 名前の「（仮称）」は2026-10-06に本人の指示で外した |
 
 ### 素材
 
