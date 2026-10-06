@@ -125,11 +125,15 @@ const lines: { cmd: string; out: string[]; fetch?: boolean }[] = [
       </div>
       <ul class="grid featured">
         {
-          (featured.length > 0 ? featured : works).map((work, i) => (
-            <li class:list={{ lead: i === 0 }} data-reveal style={`--d: ${i === 0 ? 0 : 0.08 * i}s`}>
-              <WorkCard lang={lang} work={work} variant="featured" wide={i === 0} eager={i < 1} />
-            </li>
-          ))
+          (featured.length > 0 ? featured : works).map((work, i, list) => {
+            // PC では2件ずつ並べる。奇数のときだけ先頭を横長にして、最後の行に1件だけ残らないようにする
+            const lead = i === 0 && list.length % 2 === 1;
+            return (
+              <li class:list={{ lead }} data-reveal style={`--d: ${i === 0 ? 0 : 0.08 * i}s`}>
+                <WorkCard lang={lang} work={work} variant="featured" wide={lead} eager={i < 2} />
+              </li>
+            );
+          })
         }
       </ul>
       {
